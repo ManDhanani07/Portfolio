@@ -126,14 +126,7 @@ function Header({ name, themeColor }) {
           <p className="header-description">
             Passionate about Artificial Intelligence, Machine Learning, and Full-Stack Web Development, with a focus on creating innovative, efficient, and user-centric software solutions.
           </p>
-          <div className="header-actions">
-            <a href="#about" className="header-cta-btn" style={{ backgroundColor: accentColor }}>
-              About Me
-            </a>
-            <Link to="/projects" className="header-secondary-btn" style={{ borderColor: accentColor, color: accentColor }}>
-              View Projects
-            </Link>
-          </div>
+
         </div>
       </header>
     </>

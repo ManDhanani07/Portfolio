@@ -13,11 +13,11 @@ function Navbar() {
   };
 
   const navLinks = [
-    { to: '/', label: 'Home' },
-    { to: '/about', label: 'About' },
-    { to: '/skills', label: 'Skills' },
-    { to: '/projects', label: 'Projects' },
-    { to: '/contact', label: 'Contact' }
+    // { to: '/', label: 'Home' }
+    // { to: '/about', label: 'About' },
+    // { to: '/skills', label: 'Skills' },
+    // { to: '/projects', label: 'Projects' },
+    // { to: '/contact', label: 'Contact' }
   ];
 
   return (
