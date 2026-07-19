@@ -87,14 +87,7 @@ function About() {
         .detail-value {
           font-size: 15px;
           color: var(--text-main);
-          font-weight: 500;
-        }
-
-        @media (max-width: 900px) {
-          .about-grid {
-            grid-template-columns: 1fr;
-            gap: 32px;
-          }
+          font-weight: 550;
         }
 
         .toggle-bio-btn {
@@ -115,14 +108,22 @@ function About() {
           background-color: var(--primary-hover);
           transform: translateY(-1px);
         }
+
+        @media (max-width: 900px) {
+          .about-grid {
+            grid-template-columns: 1fr;
+            gap: 32px;
+          }
+        }
       `}</style>
       <section className="about-section" id="about">
         <div className="about-container">
           <h2 className="section-title">About Me</h2>
           <div className="section-divider"></div>
-
+          
+          {/* Show/Hide Toggler for About Section */}
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '40px' }}>
-            <button
+            <button 
               className="toggle-bio-btn"
               onClick={() => setShowBio(prev => !prev)}
             >
@@ -140,7 +141,7 @@ function About() {
                   I am passionate about developing AI-driven solutions, creating responsive web applications using modern technologies like React, and applying machine learning techniques to solve real-world problems. My goal is to build innovative software that combines intelligent decision-making with excellent user experiences.
                 </p>
               </div>
-
+              
               <div className="about-card">
                 <div className="detail-item">
                   <span className="detail-label">University</span>

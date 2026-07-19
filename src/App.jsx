@@ -1,26 +1,42 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 
 // Import Components
 import Navbar from './components/Navbar';
-import Header from './components/Header';
 import About from './components/About';
 import Skills from './components/Skills';
-import Projects from './components/Projects';
-import Footer from './components/Footer';
-import Contact from './components/Contact';
+import Home from './pages/Home';
+import Projects from './pages/Projects';
+import Contact from './pages/Contact';
+import NotFound from './pages/NotFound';
 
 function App() {
   const { pathname } = useLocation();
 
+  // Scroll to top on every routing transition
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
 
-  // Data props to be passed down. Not hardcoded in child components.
+  // Scenario 2 of useState: Dark / Light theme toggler
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('theme') || 'light';
+  });
+
+  // Apply theme attribute dynamically to HTML root element
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  };
+
+  // Student Data props mapping
   const studentData = {
     name: 'Man Dhanani',
-    themeColor: '#2563eb', // Blue accent color specified in design requirements
+    themeColor: '#2563eb',
     skillList: [
       'HTML',
       'CSS',
@@ -33,17 +49,17 @@ function App() {
     projects: [
       {
         title: 'AI-Powered Personal Finance Advisor',
-        description: 'An intelligent banking advisor that automatically compiles transaction summaries, extracts classification tags, and forecasts month-to-month budgets.',
-        tech: ['React', 'FastAPI', 'PostgreSQL', 'LangChain']
+        description: 'An intelligent finance management application that analyzes spending habits, predicts future expenses, recommends personalized budgets, and answers financial questions using Machine Learning and Natural Language Processing.',
+        tech: ['React', 'FastAPI', 'Python', 'PostgreSQL', 'Machine Learning']
       },
       {
         title: 'Autonomous Multi-Agent Research Assistant',
-        description: 'An AI-powered multi-agent research platform that autonomously gathers information from multiple academic sources, summarizes findings, evaluates report quality, and generates comprehensive research reports using Large Language Models and Retrieval-Augmented Generation (RAG).',
+        description: 'An AI-powered research platform that autonomously gathers information from multiple academic sources, summarizes research papers, evaluates report quality, and generates comprehensive research reports using Large Language Models and Retrieval-Augmented Generation (RAG).',
         tech: ['Python', 'LangGraph', 'Groq API', 'ChromaDB', 'Streamlit']
       },
       {
         title: 'InfluConnect',
-        description: 'A social media influencer collaboration platform that connects brands with content creators, enabling campaign management, influencer discovery, performance tracking, and seamless communication through a modern web interface.',
+        description: 'A modern influencer-brand collaboration platform where businesses discover creators, manage campaigns, monitor engagement analytics, and communicate with influencers through an intuitive web interface.',
         tech: ['React', 'Node.js', 'Express.js', 'MongoDB']
       }
     ]
@@ -62,58 +78,26 @@ function App() {
           flex: 1 0 auto;
         }
 
-        /* Routing view padding wrapper class */
+        /* Routing page wrappers */
         .route-padding-wrapper {
-          padding-top: 70px; /* Accounts for fixed navbar height */
+          padding-top: 70px;
         }
       `}</style>
       <div className="app-container">
-        {/* Sticky Top Navigation Bar */}
-        <Navbar />
+        {/* Sticky Top Navigation Bar with Theme Toggler */}
+        <Navbar theme={theme} toggleTheme={toggleTheme} />
 
-        {/* Dynamic Pages Routing Workspace */}
+        {/* Multi-Page Routes container */}
         <main className="main-content">
           <Routes>
-            <Route
-              path="/"
-              element={
-                <div className="landing-page-flow">
-                  <Header name={studentData.name} themeColor={studentData.themeColor} />
-                  <About />
-                  <Skills skillList={studentData.skillList} />
-                </div>
-              }
-            />
-            <Route
-              path="/about"
-              element={
-                <div className="route-padding-wrapper">
-                  <About />
-                </div>
-              }
-            />
-            <Route
-              path="/skills"
-              element={
-                <div className="route-padding-wrapper">
-                  <Skills skillList={studentData.skillList} />
-                </div>
-              }
-            />
-            <Route
-              path="/projects"
-              element={
-                <div className="route-padding-wrapper">
-                  <Projects projects={studentData.projects} />
-                </div>
-              }
-            />
+            <Route path="/" element={<Home studentData={studentData} />} />
+            <Route path="/about" element={<div className="route-padding-wrapper"><About /></div>} />
+            <Route path="/skills" element={<div className="route-padding-wrapper"><Skills skillList={studentData.skillList} /></div>} />
+            <Route path="/projects" element={<Projects projects={studentData.projects} />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
-
-        {/* Global Footer (Present across all routing screens) */}
-        <Footer />
       </div>
     </>
   );

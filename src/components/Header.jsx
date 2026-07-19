@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 
 function Header({ name, themeColor }) {
   const accentColor = themeColor || '#2563eb';
@@ -52,7 +51,7 @@ function Header({ name, themeColor }) {
         .header-subtitle {
           font-family: var(--font-heading);
           font-size: 24px;
-          font-weight: 500;
+          font-weight: 550;
           color: var(--text-muted);
           margin-bottom: 24px;
         }
@@ -63,43 +62,6 @@ function Header({ name, themeColor }) {
           max-width: 580px;
           line-height: 1.6;
           margin-bottom: 36px;
-        }
-
-        .header-actions {
-          display: flex;
-          gap: 16px;
-          justify-content: center;
-          flex-wrap: wrap;
-        }
-
-        .header-cta-btn {
-          color: #ffffff;
-          font-size: 15px;
-          font-weight: 600;
-          padding: 12px 30px;
-          border-radius: 30px;
-          transition: opacity 0.2s ease, transform 0.2s ease;
-          box-shadow: var(--shadow-sm);
-        }
-
-        .header-cta-btn:hover {
-          opacity: 0.95;
-          transform: translateY(-1px);
-        }
-
-        .header-secondary-btn {
-          background-color: transparent;
-          border: 1.5px solid var(--primary);
-          font-size: 15px;
-          font-weight: 600;
-          padding: 11px 30px;
-          border-radius: 30px;
-          transition: background-color 0.2s ease, transform 0.2s ease;
-        }
-
-        .header-secondary-btn:hover {
-          background-color: var(--bg-secondary);
-          transform: translateY(-1px);
         }
 
         @media (max-width: 768px) {
@@ -122,11 +84,10 @@ function Header({ name, themeColor }) {
           <h1 className="header-name">
             Hello, I'm <span className="highlight-text" style={{ color: accentColor }}>{name}</span>
           </h1>
-          <h2 className="header-subtitle">Aspiring AI Engineer & Full-Stack Developer</h2>
+          <h2 className="header-subtitle">AI & Machine Learning Student</h2>
           <p className="header-description">
             Passionate about Artificial Intelligence, Machine Learning, and Full-Stack Web Development, with a focus on creating innovative, efficient, and user-centric software solutions.
           </p>
-
         </div>
       </header>
     </>
