@@ -1,33 +1,73 @@
 import React from 'react';
 
 function Footer() {
-  const currentYear = new Date().getFullYear();
-
   return (
-    <footer className="w-full border-t border-border bg-bg-secondary p-8 mt-auto">
-      <div className="flex justify-between items-center max-w-[1200px] mx-auto flex-wrap gap-4 max-md:flex-col max-md:text-center">
-        <p className="text-sm text-text-muted">
-          &copy; {currentYear} Man Dhanani. All rights reserved.
-        </p>
-        <div className="flex gap-6 max-md:flex-col max-md:gap-3">
-          <a href="mailto:man.dhanani@example.com" className="flex items-center gap-2 text-sm text-text-muted no-underline transition-colors duration-200 hover:text-primary" aria-label="Email Me">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-              <polyline points="22,6 12,13 2,6"></polyline>
-            </svg>
-            man.dhanani@example.com
-          </a>
-          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-text-muted no-underline transition-colors duration-200 hover:text-primary" aria-label="LinkedIn Profile">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-              <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
-              <rect x="2" y="9" width="4" height="12"></rect>
-              <circle cx="4" cy="4" r="2"></circle>
-            </svg>
-            LinkedIn
-          </a>
+    <>
+      <style>{`
+        .footer-section {
+          background-color: var(--bg-secondary);
+          border-top: 1px solid var(--border);
+          padding: 40px 24px;
+        }
+
+        .footer-container {
+          max-width: var(--max-width);
+          margin: 0 auto;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 20px;
+        }
+
+        .social-links-row {
+          display: flex;
+          gap: 24px;
+        }
+
+        .social-link-item {
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--text-muted);
+          transition: color 0.2s ease;
+        }
+
+        .social-link-item:hover {
+          color: var(--primary);
+        }
+
+        .footer-copyright {
+          font-size: 13px;
+          color: var(--text-muted);
+        }
+
+        @media (max-width: 600px) {
+          .footer-container {
+            flex-direction: column;
+            text-align: center;
+          }
+        }
+      `}</style>
+      <footer className="footer-section">
+        <div className="footer-container">
+          <p className="footer-copyright">
+            &copy; {new Date().getFullYear()} Man Dhanani. All rights reserved.
+          </p>
+          
+          <div className="social-links-row">
+            <a href="mailto:man.dhanani@example.com" className="social-link-item">
+              Email
+            </a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="social-link-item">
+              LinkedIn
+            </a>
+            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="social-link-item">
+              GitHub
+            </a>
+          </div>
         </div>
-      </div>
-    </footer>
+      </footer>
+    </>
   );
 }
 
