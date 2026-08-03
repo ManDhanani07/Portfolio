@@ -93,7 +93,7 @@ function App() {
             <Route path="/" element={<Home studentData={studentData} />} />
             <Route path="/about" element={<div className="route-padding-wrapper"><About /></div>} />
             <Route path="/skills" element={<div className="route-padding-wrapper"><Skills skillList={studentData.skillList} /></div>} />
-            <Route path="/projects" element={<Projects projects={studentData.projects} />} />
+            <Route path="/projects" element={<Projects />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
