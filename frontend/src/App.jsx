@@ -9,6 +9,7 @@ import Home from './pages/Home';
 import Projects from './pages/Projects';
 import Contact from './pages/Contact';
 import NotFound from './pages/NotFound';
+import TaskManager from './pages/TaskManager';
 
 function App() {
   const { pathname } = useLocation();
@@ -95,6 +96,7 @@ function App() {
             <Route path="/skills" element={<div className="route-padding-wrapper"><Skills skillList={studentData.skillList} /></div>} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/task" element={<div className="route-padding-wrapper"><TaskManager /></div>}/>
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
