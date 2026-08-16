@@ -17,7 +17,6 @@ import {
   CheckCircle2,
   Database,
   Loader2,
-  Search,
   Calendar,
   Sparkles,
   Tag,
@@ -58,7 +57,7 @@ const taskStyles = `
   --color-red: #ef4444;
 
   min-height: calc(100vh - 70px);
-  max-width: 1280px;
+  max-width: var(--max-width, 1100px);
   margin: 0 auto;
   padding: 16px 24px 40px;
   color: var(--task-text);
@@ -165,11 +164,16 @@ const taskStyles = `
    STATS OVERVIEW CARDS (4 ESSENTIAL CARDS)
 ===================================================== */
 
+.task-page section {
+  padding: 0;
+}
+
 .task-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
-  margin-bottom: 16px;
+  padding: 0;
+  margin: 0 0 16px 0;
 }
 
 .stat-card {
@@ -283,17 +287,6 @@ const taskStyles = `
   font-size: 18px;
   font-weight: 700;
   color: var(--task-text);
-}
-
-.card-header-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(99, 102, 241, 0.15);
-  color: #a5b4fc;
 }
 
 .work-title-row {
@@ -541,64 +534,20 @@ const taskStyles = `
 }
 
 /* =====================================================
-   CONTROLS BAR (SEARCH & FILTERS)
+   CONTROLS BAR (FILTERS)
 ===================================================== */
 
 .controls-bar {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 12px;
-}
-
-.search-box {
-  position: relative;
-  width: 100%;
-  display: flex;
-  align-items: center;
-}
-
-.search-icon {
-  position: absolute;
-  left: 10px;
-  color: var(--task-muted);
-  pointer-events: none;
-}
-
-.search-box input {
-  width: 100%;
-  padding: 8px 30px 8px 32px;
-  border: 1px solid var(--task-border);
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.2);
-  color: var(--task-text);
-  font-family: inherit;
-  font-size: 12px;
-  outline: none;
-  box-sizing: border-box;
-  transition: border-color 0.2s ease;
-}
-
-.search-box input:focus {
-  border-color: #6366f1;
-}
-
-.search-clear {
-  position: absolute;
-  right: 8px;
-  background: transparent;
-  border: none;
-  color: var(--task-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .filter-rows {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .task-filters {
@@ -1102,7 +1051,6 @@ function TaskManager() {
   const [editingId, setEditingId] = useState(null);
   const [filter, setFilter] = useState("All");
   const [priorityFilter, setPriorityFilter] = useState("All");
-  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingTasks, setLoadingTasks] = useState(true);
   const [toast, setToast] = useState(null);
@@ -1361,7 +1309,7 @@ function TaskManager() {
   ).length;
 
   // =====================================================
-  // FILTER & SEARCH
+  // FILTERING
   // =====================================================
 
   const filteredTasks = tasks.filter((task) => {
@@ -1369,13 +1317,7 @@ function TaskManager() {
     const matchesPriority =
       priorityFilter === "All" || task.priority === priorityFilter;
 
-    const matchesSearch =
-      searchQuery.trim() === "" ||
-      task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (task.description &&
-        task.description.toLowerCase().includes(searchQuery.toLowerCase()));
-
-    return matchesStatus && matchesPriority && matchesSearch;
+    return matchesStatus && matchesPriority;
   });
 
   // =====================================================
@@ -1464,7 +1406,7 @@ function TaskManager() {
       </header>
 
       {/* ESSENTIAL STATS CARDS */}
-      <section className="task-stats">
+      <div className="task-stats">
         <div className="stat-card">
           <div className="stat-icon total-icon">
             <ListTodo size={18} />
@@ -1504,21 +1446,18 @@ function TaskManager() {
             <strong>{completedTasks}</strong>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* MAIN GRID */}
       <div className="task-main-grid">
         {/* CREATE / EDIT TASK FORM CARD */}
-        <section className="task-form-card">
+        <div className="task-form-card">
           <div className="card-header">
             <div className="header-title-group">
               <span className="card-eyebrow">
                 {editingId ? "EDIT TASK" : "CREATE NEW"}
               </span>
               <h2>{editingId ? "Update Task Details" : "Create a New Task"}</h2>
-            </div>
-            <div className="card-header-icon">
-              {editingId ? <Pencil size={16} /> : <Plus size={16} />}
             </div>
           </div>
 
@@ -1676,10 +1615,10 @@ function TaskManager() {
             <Database size={13} className="footer-db-icon" />
             <span>Changes are automatically saved to MongoDB</span>
           </div>
-        </section>
+        </div>
 
         {/* YOUR TASKS LIST CARD */}
-        <section className="task-list-card">
+        <div className="task-list-card">
           <div className="list-header">
             <div>
               <span className="card-eyebrow">YOUR WORK</span>
@@ -1703,28 +1642,8 @@ function TaskManager() {
             </button>
           </div>
 
-          {/* SEARCH & MULTI-FILTER TABS */}
+          {/* FILTER TABS */}
           <div className="controls-bar">
-            {/* SEARCH INPUT */}
-            <div className="search-box">
-              <Search size={14} className="search-icon" />
-              <input
-                type="text"
-                placeholder="Search tasks by title or description..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              {searchQuery && (
-                <button
-                  className="search-clear"
-                  onClick={() => setSearchQuery("")}
-                  title="Clear search"
-                >
-                  <X size={13} />
-                </button>
-              )}
-            </div>
-
             <div className="filter-rows">
               {/* STATUS FILTERS */}
               <div className="task-filters">
@@ -1786,10 +1705,8 @@ function TaskManager() {
               </div>
               <h3>No tasks found</h3>
               <p>
-                {searchQuery
-                  ? `No tasks match "${searchQuery}"`
-                  : filter !== "All" || priorityFilter !== "All"
-                  ? `No tasks match selected filter criteria.`
+                {filter !== "All" || priorityFilter !== "All"
+                  ? "No tasks match selected filter criteria."
                   : "You don't have any tasks yet. Create one on the left!"}
               </p>
             </div>
@@ -1892,7 +1809,7 @@ function TaskManager() {
               })}
             </div>
           )}
-        </section>
+        </div>
       </div>
     </div>
   );
