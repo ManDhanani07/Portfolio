@@ -10,6 +10,7 @@ import Projects from './pages/Projects';
 import Contact from './pages/Contact';
 import NotFound from './pages/NotFound';
 import TaskManager from './pages/TaskManager';
+import Auth from './pages/Auth';
 
 function App() {
   const { pathname } = useLocation();
@@ -96,7 +97,10 @@ function App() {
             <Route path="/skills" element={<div className="route-padding-wrapper"><Skills skillList={studentData.skillList} /></div>} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/task" element={<div className="route-padding-wrapper"><TaskManager /></div>}/>
+            <Route path="/task" element={<div className="route-padding-wrapper"><TaskManager /></div>} />
+            <Route path="/login" element={<div className="route-padding-wrapper"><Auth initialMode="login" /></div>} />
+            <Route path="/register" element={<div className="route-padding-wrapper"><Auth initialMode="register" /></div>} />
+            <Route path="/auth" element={<div className="route-padding-wrapper"><Auth initialMode="login" /></div>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>

@@ -1,8 +1,34 @@
-import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { getCurrentUser, isAuthenticated, logout } from '../api';
+import { LogOut, User, CheckCircle2, ShieldCheck, LogIn } from 'lucide-react';
 
 function Navbar({ theme, toggleTheme }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState(() => getCurrentUser());
+  const [authenticated, setAuthenticated] = useState(() => isAuthenticated());
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleAuthChange = () => {
+      setUser(getCurrentUser());
+      setAuthenticated(isAuthenticated());
+    };
+
+    window.addEventListener('auth_state_change', handleAuthChange);
+    window.addEventListener('storage', handleAuthChange);
+
+    return () => {
+      window.removeEventListener('auth_state_change', handleAuthChange);
+      window.removeEventListener('storage', handleAuthChange);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    setIsOpen(false);
+    navigate('/login');
+  };
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -17,6 +43,7 @@ function Navbar({ theme, toggleTheme }) {
     { to: '/about', label: 'About' },
     { to: '/skills', label: 'Skills' },
     { to: '/projects', label: 'Projects' },
+    { to: '/task', label: 'Tasks' },
     { to: '/contact', label: 'Contact' }
   ];
 
@@ -58,20 +85,24 @@ function Navbar({ theme, toggleTheme }) {
           letter-spacing: -0.5px;
           cursor: pointer;
           text-decoration: none;
+          display: flex;
+          align-items: center;
+          gap: 8px;
         }
 
         .navbar-right {
           display: flex;
           align-items: center;
-          gap: 32px;
+          gap: 24px;
         }
 
         .navbar-links {
           display: flex;
           list-style: none;
-          gap: 32px;
+          gap: 24px;
           margin: 0;
           padding: 0;
+          align-items: center;
         }
 
         .navbar-link {
@@ -105,6 +136,71 @@ function Navbar({ theme, toggleTheme }) {
 
         .navbar-link.active::after {
           width: 100%;
+        }
+
+        /* User Auth Badges & Buttons */
+        .nav-auth-section {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .user-chip {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          background: rgba(99, 102, 241, 0.12);
+          border: 1px solid rgba(99, 102, 241, 0.25);
+          color: var(--primary);
+          padding: 5px 12px;
+          border-radius: 999px;
+          font-size: 12px;
+          font-weight: 600;
+          max-width: 180px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .logout-btn {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          background: rgba(239, 68, 68, 0.1);
+          border: 1px solid rgba(239, 68, 68, 0.25);
+          color: #ef4444;
+          padding: 6px 14px;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .logout-btn:hover {
+          background: rgba(239, 68, 68, 0.2);
+          color: #f87171;
+        }
+
+        .login-btn-link {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          background: linear-gradient(135deg, #6366f1, #4f46e5);
+          border: none;
+          color: #ffffff;
+          padding: 7px 16px;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 600;
+          text-decoration: none;
+          box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+          transition: all 0.2s ease;
+        }
+
+        .login-btn-link:hover {
+          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.45);
+          transform: translateY(-1px);
         }
 
         /* Theme Toggle Button */
@@ -151,7 +247,7 @@ function Navbar({ theme, toggleTheme }) {
         }
 
         /* Responsive navigation drawer */
-        @media (max-width: 768px) {
+        @media (max-width: 860px) {
           .navbar-toggle {
             display: flex;
           }
@@ -173,14 +269,15 @@ function Navbar({ theme, toggleTheme }) {
             top: 0;
             right: -100%;
             height: 100vh;
-            width: 260px;
+            width: 280px;
             background-color: var(--bg-primary);
             border-left: 1px solid var(--border);
             flex-direction: column;
-            padding: 100px 32px;
-            gap: 24px;
+            padding: 90px 24px;
+            gap: 20px;
             transition: right 0.3s ease;
             box-shadow: var(--shadow-lg);
+            align-items: flex-start;
           }
 
           .navbar-links.mobile-active {
@@ -193,8 +290,17 @@ function Navbar({ theme, toggleTheme }) {
             width: 100%;
           }
 
+          .nav-auth-section {
+            width: 100%;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-top: 10px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border);
+          }
+
           .navbar-right {
-            gap: 16px;
+            gap: 12px;
           }
         }
       `}</style>
@@ -204,7 +310,7 @@ function Navbar({ theme, toggleTheme }) {
             Man's Portfolio
           </NavLink>
 
-          {/* Navbar Toggle and Theme Switch block */}
+          {/* Navbar Right: Nav Links, Auth Controls, Theme Switch */}
           <div className="navbar-right">
             {/* Theme Toggle Button */}
             <button 
@@ -238,7 +344,7 @@ function Navbar({ theme, toggleTheme }) {
             {/* Navigation Items List */}
             <ul className={`navbar-links ${isOpen ? 'mobile-active' : ''}`}>
               {navLinks.map((link) => (
-                <li key={link.to} className="navbar-item">
+                <li key={link.to} className="navbar-item" style={{ width: '100%' }}>
                   <NavLink
                     to={link.to}
                     className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}
@@ -249,6 +355,31 @@ function Navbar({ theme, toggleTheme }) {
                   </NavLink>
                 </li>
               ))}
+
+              {/* Authentication Status in Nav Menu */}
+              <li className="navbar-item nav-auth-section">
+                {authenticated ? (
+                  <>
+                    <div className="user-chip" title={user?.email || "Logged in"}>
+                      <User size={13} />
+                      <span>{user?.email || "Student"}</span>
+                    </div>
+                    <button onClick={handleLogout} className="logout-btn">
+                      <LogOut size={14} />
+                      <span>Logout</span>
+                    </button>
+                  </>
+                ) : (
+                  <NavLink
+                    to="/login"
+                    className="login-btn-link"
+                    onClick={closeMenu}
+                  >
+                    <LogIn size={14} />
+                    <span>Login</span>
+                  </NavLink>
+                )}
+              </li>
             </ul>
           </div>
         </div>

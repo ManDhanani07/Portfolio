@@ -1,262 +1,120 @@
+// =============================================================================
+// Practical 7: JWT Authentication & Middleware Pipeline
+// Full-Stack Task Management System with Express.js, MongoDB, & JWT
+// =============================================================================
+
+require("dotenv").config();
 const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
 
+// Import Route Handlers
+const authRoutes = require("./routes/authRoutes");
+const taskRoutes = require("./routes/taskRoutes");
+
+// Initialize Express App
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
+const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/tasks";
 
-// ===============================
-// Parse JSON
-// ===============================
+// =============================================================================
+// 1. GLOBAL MIDDLEWARES (Pipeline Setup)
+// =============================================================================
+
+// Cross-Origin Resource Sharing (CORS) - Allows frontend to communicate with API
+app.use(cors());
+
+// Express Built-in JSON Parser Middleware
 app.use(express.json());
 
-// ===============================
-// Logging Middleware
-// ===============================
+// URL Sanitizer Middleware (Strips accidental trailing newlines / %0A / spaces)
 app.use((req, res, next) => {
-    console.log(`${req.method} ${req.url} - ${new Date().toISOString()}`);
-    next();
+  if (req.url) {
+    req.url = decodeURIComponent(req.url).trim();
+  }
+  next();
 });
 
-// ===============================
-// Content-Type Validation Middleware
-// ===============================
+// Request Logger Middleware (Tracks incoming requests for debugging/monitoring)
 app.use((req, res, next) => {
-
-    if (
-        (req.method === "POST" || req.method === "PUT") &&
-        !req.is("application/json")
-    ) {
-        return res.status(400).json({
-            success: false,
-            message: "Content-Type must be application/json"
-        });
-    }
-
-    next();
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+  next();
 });
 
-// ===============================
-// In-Memory Tasks
-// ===============================
-const tasks = [
-    {
-        id: 1,
-        title: "Complete Express Practical",
-        completed: false
-    },
-    {
-        id: 2,
-        title: "Learn Middleware",
-        completed: false
-    }
-];
+// =============================================================================
+// 2. MONGODB DATABASE CONNECTION
+// =============================================================================
 
-// Next Task ID
-let nextId = tasks.length + 1;
+mongoose
+  .connect(MONGO_URI)
+  .then(() => {
+    console.log(" MongoDB Connected Successfully to:", MONGO_URI);
+  })
+  .catch((error) => {
+    console.error("❌ MongoDB Connection Error:", error.message);
+  });
 
-// ===============================
-// Route-Specific Middleware
-// Validate Task ID
-// ===============================
-function validateTaskId(req, res, next) {
+// =============================================================================
+// 3. API ROUTES
+// =============================================================================
 
-    const id = Number(req.params.id);
-
-    if (isNaN(id) || id <= 0) {
-        return res.status(400).json({
-            success: false,
-            message: "Invalid Task ID"
-        });
-    }
-
-    next();
-}
-
-// ===============================
-// Home Route
-// ===============================
+// Root Health Check Route
 app.get("/", (req, res) => {
-
-    res.status(200).json({
-        success: true,
-        message: "Welcome to Task Manager REST API"
-    });
-
+  res.status(200).json({
+    success: true,
+    message: "Practical 7 Task Management API with JWT Authentication is running",
+    endpoints: {
+      auth: {
+        register: "POST /api/auth/register",
+        login: "POST /api/auth/login",
+        me: "GET /api/auth/me (Protected)",
+      },
+      tasks: {
+        getAll: "GET /api/tasks (Protected)",
+        getOne: "GET /api/tasks/:id (Protected)",
+        create: "POST /api/tasks (Protected + Validated)",
+        update: "PUT /api/tasks/:id (Protected + Validated)",
+        delete: "DELETE /api/tasks/:id (Protected)",
+      },
+    },
+  });
 });
 
-// ===============================
-// GET All Tasks
-// ===============================
-app.get("/tasks", (req, res) => {
+// Authentication Routes (Register, Login, /me)
+app.use("/api/auth", authRoutes);
+app.use("/auth", authRoutes); // Fallback alias
 
-    res.status(200).json({
-        success: true,
-        count: tasks.length,
-        data: tasks
-    });
+// Protected Task Management Routes (CRUD with Auth & Validation Middlewares)
+app.use("/api/tasks", taskRoutes);
+app.use("/tasks", taskRoutes); // Fallback alias for Practical 6 compatibility
 
-});
-
-// ===============================
-// GET Task By ID
-// ===============================
-app.get("/tasks/:id", validateTaskId, (req, res) => {
-
-    const id = Number(req.params.id);
-
-    const task = tasks.find(task => task.id === id);
-
-    if (!task) {
-        return res.status(404).json({
-            success: false,
-            message: "Task not found"
-        });
-    }
-
-    res.status(200).json({
-        success: true,
-        data: task
-    });
-
-});
-
-// ===============================
-// CREATE Task
-// ===============================
-app.post("/tasks", (req, res) => {
-
-    const { title, completed } = req.body;
-
-    if (!title) {
-        return res.status(400).json({
-            success: false,
-            message: "Task title is required"
-        });
-    }
-
-    const newTask = {
-        id: nextId++,
-        title,
-        completed: completed ?? false
-    };
-
-    tasks.push(newTask);
-
-    res.status(201).json({
-        success: true,
-        message: "Task created successfully",
-        data: newTask
-    });
-
-});
-
-// ===============================
-// UPDATE Task
-// ===============================
-app.put("/tasks/:id", validateTaskId, (req, res) => {
-
-    const id = Number(req.params.id);
-
-    const task = tasks.find(task => task.id === id);
-
-    if (!task) {
-        return res.status(404).json({
-            success: false,
-            message: "Task not found"
-        });
-    }
-
-    const { title, completed } = req.body;
-
-    if (title !== undefined)
-        task.title = title;
-
-    if (completed !== undefined)
-        task.completed = completed;
-
-    res.status(200).json({
-        success: true,
-        message: "Task updated successfully",
-        data: task
-    });
-
-});
-
-// ===============================
-// DELETE Task
-// ===============================
-app.delete("/tasks/:id", validateTaskId, (req, res) => {
-
-    const id = Number(req.params.id);
-
-    const index = tasks.findIndex(task => task.id === id);
-
-    if (index === -1) {
-        return res.status(404).json({
-            success: false,
-            message: "Task not found"
-        });
-    }
-
-    // Delete task
-    const deletedTask = tasks.splice(index, 1)[0];
-
-    // Renumber IDs
-    tasks.forEach((task, index) => {
-        task.id = index + 1;
-    });
-
-    // Reset next ID
-    nextId = tasks.length + 1;
-
-    res.status(200).json({
-        success: true,
-        message: "Task deleted successfully",
-        deletedTask,
-        remainingTasks: tasks
-    });
-
-});
-
-// ===============================
-// Test Error Route
-// ===============================
-app.get("/error", (req, res, next) => {
-
-    next(new Error("This is a test error"));
-
-});
-
-// ===============================
-// 404 Middleware
-// ===============================
+// =============================================================================
+// 4. 404 NOT FOUND HANDLER
+// =============================================================================
 app.use((req, res) => {
-
-    res.status(404).json({
-        success: false,
-        message: "Route not found"
-    });
-
+  res.status(404).json({
+    success: false,
+    message: `Route not found: ${req.method} ${req.originalUrl}`,
+  });
 });
 
-// ===============================
-// Global Error Handler
-// ===============================
+// =============================================================================
+// 5. GLOBAL 500 ERROR HANDLER
+// =============================================================================
 app.use((err, req, res, next) => {
-
-    console.error(err.stack);
-
-    res.status(500).json({
-        success: false,
-        message: "Something went wrong"
-    });
-
+  console.error("Unhandled Server Error:", err.stack);
+  res.status(500).json({
+    success: false,
+    message: "Internal Server Error",
+    error: process.env.NODE_ENV === "production" ? undefined : err.message,
+  });
 });
 
-// ===============================
-// Start Server
-// ===============================
+// =============================================================================
+// 6. SERVER START
+// =============================================================================
 app.listen(PORT, () => {
-
-    console.log(`Server running on http://localhost:${PORT}`);
-
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
+
+module.exports = app;

@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import {
   getTasks,
   createTask,
   updateTask,
   deleteTask,
+  isAuthenticated,
+  getCurrentUser,
+  logout,
 } from "../api";
 import {
   Plus,
@@ -1054,6 +1058,9 @@ function TaskManager() {
   const [loading, setLoading] = useState(false);
   const [loadingTasks, setLoadingTasks] = useState(true);
   const [toast, setToast] = useState(null);
+  const [currentUser, setCurrentUser] = useState(() => getCurrentUser());
+  const [loggedIn, setLoggedIn] = useState(() => isAuthenticated());
+  const navigate = useNavigate();
 
   // Helper to normalize backend status and priority values
   const normalizeTask = (task) => {
@@ -1104,19 +1111,37 @@ function TaskManager() {
   };
 
   // =====================================================
-  // GET
+  // GET (Authenticated)
   // =====================================================
 
   useEffect(() => {
+    const handleAuthEvent = () => {
+      setCurrentUser(getCurrentUser());
+      setLoggedIn(isAuthenticated());
+    };
+
+    window.addEventListener("auth_state_change", handleAuthEvent);
     loadTasks();
+
+    return () => {
+      window.removeEventListener("auth_state_change", handleAuthEvent);
+    };
   }, []);
 
   const loadTasks = async () => {
+    if (!isAuthenticated()) {
+      setLoggedIn(false);
+      setLoadingTasks(false);
+      showToast("info", "Please log in to manage your tasks", "AUTH");
+      return;
+    }
+
     try {
       setLoadingTasks(true);
       const data = await getTasks();
       const normalized = (Array.isArray(data) ? data : []).map(normalizeTask);
       setTasks(normalized);
+      setLoggedIn(true);
       showToast(
         "success",
         `${normalized.length} task${normalized.length !== 1 ? "s" : ""} loaded successfully`,
@@ -1124,7 +1149,12 @@ function TaskManager() {
       );
     } catch (error) {
       console.error(error);
-      showToast("error", "Failed to load tasks from backend", "GET");
+      if (error.status === 401) {
+        setLoggedIn(false);
+        showToast("error", "Session expired or invalid token. Please log in.", "401 AUTH");
+      } else {
+        showToast("error", "Failed to load tasks from backend", "GET");
+      }
     } finally {
       setLoadingTasks(false);
     }
@@ -1396,14 +1426,128 @@ function TaskManager() {
           </div>
         </div>
 
-        <div className="task-hero-actions">
+        <div className="task-hero-actions" style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
           <div className="sync-badge">
             <span className="sync-dot"></span>
             <Database size={13} />
             <span>MongoDB Connected</span>
           </div>
+
+          {loggedIn ? (
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "6px 12px",
+                borderRadius: "999px",
+                fontSize: "12px",
+                fontWeight: "600",
+                background: "rgba(16, 185, 129, 0.12)",
+                color: "#10b981",
+                border: "1px solid rgba(16, 185, 129, 0.25)",
+              }}
+            >
+              <CheckCircle2 size={13} />
+              <span>JWT Authenticated ({currentUser?.email || "Student"})</span>
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "6px 14px",
+                borderRadius: "8px",
+                fontSize: "13px",
+                fontWeight: "600",
+                background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                color: "#ffffff",
+                textDecoration: "none",
+                boxShadow: "0 2px 8px rgba(99, 102, 241, 0.3)",
+              }}
+            >
+              <span>Sign In to Edit Tasks</span>
+            </Link>
+          )}
         </div>
       </header>
+
+      {/* Practical 7 Authentication Status Banner (when logged out) */}
+      {!loggedIn && (
+        <div
+          style={{
+            background: "rgba(99, 102, 241, 0.08)",
+            border: "1px solid rgba(99, 102, 241, 0.25)",
+            borderRadius: "14px",
+            padding: "16px 20px",
+            marginBottom: "20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: "14px",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div
+              style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "10px",
+                background: "rgba(99, 102, 241, 0.2)",
+                color: "var(--primary, #6366f1)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Sparkles size={18} />
+            </div>
+            <div>
+              <strong style={{ display: "block", fontSize: "14px", color: "var(--text-main, #ffffff)" }}>
+                Secure Workspace • Authentication Active
+              </strong>
+              <span style={{ fontSize: "13px", color: "var(--text-muted, #94a3b8)" }}>
+                Task CRUD operations require a valid JWT token in the <code>Authorization: Bearer</code> header.
+              </span>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: "10px" }}>
+            <Link
+              to="/login"
+              style={{
+                padding: "8px 16px",
+                borderRadius: "8px",
+                background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                color: "#ffffff",
+                fontSize: "13px",
+                fontWeight: "600",
+                textDecoration: "none",
+              }}
+            >
+              Login
+            </Link>
+            <Link
+              to="/register"
+              style={{
+                padding: "8px 16px",
+                borderRadius: "8px",
+                background: "rgba(255, 255, 255, 0.06)",
+                border: "1px solid var(--border, rgba(255, 255, 255, 0.1))",
+                color: "var(--text-main, #ffffff)",
+                fontSize: "13px",
+                fontWeight: "600",
+                textDecoration: "none",
+              }}
+            >
+              Register
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* ESSENTIAL STATS CARDS */}
       <div className="task-stats">
