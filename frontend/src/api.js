@@ -161,6 +161,38 @@ export const getMe = async () => {
   return handleResponse(response);
 };
 
+/**
+ * Request password reset email via Nodemailer
+ * POST /api/auth/forgot-password
+ */
+export const forgotPassword = async (email) => {
+  const response = await fetch(`${BASE_URL}/api/auth/forgot-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Reset password using token
+ * POST /api/auth/reset-password
+ */
+export const resetPassword = async ({ email, token, newPassword }) => {
+  const response = await fetch(`${BASE_URL}/api/auth/reset-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email, token, newPassword }),
+  });
+
+  return handleResponse(response);
+};
+
 // =========================================================================
 // PROTECTED TASK API ENDPOINTS
 // =========================================================================
@@ -222,4 +254,53 @@ export const deleteTask = async (id) => {
 
   const json = await handleResponse(response);
   return unwrapResponse(json);
+};
+
+// =========================================================================
+// ADMIN ONLY REPORT GENERATION ENDPOINTS
+// =========================================================================
+
+/**
+ * Fetch task report for given date range (Admin Only)
+ * GET /api/reports/tasks?startDate=...&endDate=...
+ */
+export const getAdminTaskReport = async ({ startDate, endDate }) => {
+  const query = new URLSearchParams({ startDate, endDate }).toString();
+  const response = await fetch(`${BASE_URL}/api/reports/tasks?${query}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Download task report as CSV file (Admin Only)
+ * GET /api/reports/tasks?startDate=...&endDate=...&format=csv
+ */
+export const downloadAdminTaskReportCsv = async ({ startDate, endDate }) => {
+  const query = new URLSearchParams({ startDate, endDate, format: "csv" }).toString();
+  const response = await fetch(`${BASE_URL}/api/reports/tasks?${query}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    let errData = null;
+    try { errData = await response.json(); } catch {}
+    const msg = errData?.message || `Failed to download CSV: HTTP ${response.status}`;
+    const err = new Error(msg);
+    err.status = response.status;
+    throw err;
+  }
+
+  const blob = await response.blob();
+  const downloadUrl = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = downloadUrl;
+  link.download = `Task_Report_${startDate}_to_${endDate}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(downloadUrl);
 };

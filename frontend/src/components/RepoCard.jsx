@@ -137,7 +137,7 @@ function RepoCard({ repo, index }) {
           font-size: 12px;
           color: var(--text-muted);
           margin-bottom: 12px;
-          font-family: monospace;
+          font-family: 'Outfit', sans-serif;
         }
 
         .repo-card-description {
@@ -410,7 +410,7 @@ function RepoCard({ repo, index }) {
         }
 
         .clone-text {
-          font-family: monospace;
+          font-family: 'Outfit', sans-serif;
           font-size: 13px;
           color: var(--primary);
           overflow-x: auto;

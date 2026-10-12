@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
 
 /**
- * User Schema for JWT Authentication (Practical 7)
- * Stores user credentials with email uniqueness and hashed passwords
+ * User Schema for Authentication & RBAC
+ * Supports JWT Authentication, Role-based Access Control (user / admin),
+ * and Nodemailer Password Reset with token expiration.
  */
 const userSchema = new mongoose.Schema(
   {
@@ -16,6 +17,19 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: [true, "Password is required"],
+    },
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
+    resetPasswordToken: {
+      type: String,
+      default: null,
+    },
+    resetPasswordExpires: {
+      type: Date,
+      default: null,
     },
   },
   {

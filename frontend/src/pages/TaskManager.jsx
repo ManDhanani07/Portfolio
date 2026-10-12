@@ -8,6 +8,8 @@ import {
   isAuthenticated,
   getCurrentUser,
   logout,
+  getAdminTaskReport,
+  downloadAdminTaskReportCsv,
 } from "../api";
 import {
   Plus,
@@ -34,1017 +36,21 @@ import {
   AlertTriangle,
   ArrowDownCircle,
   Flag,
+  Search,
+  GripVertical,
+  ArrowRight,
+  ArrowLeft,
+  RotateCcw,
+  Kanban,
+  Columns3,
+  FileText,
+  Download,
+  BarChart3,
+  Printer,
+  Shield,
+  ShieldAlert,
 } from "lucide-react";
-
-const taskStyles = `
-/* =====================================================
-   TASK MANAGER MODERN ENTERPRISE DESIGN SYSTEM
-   Clean Dark Surface, Indigo/Violet Accent, Zero Harsh Orange
-===================================================== */
-
-.task-page {
-  --task-bg: var(--bg-primary, #090d16);
-  --task-card: var(--bg-secondary, #111726);
-  --task-text: var(--text-main, #f8fafc);
-  --task-muted: var(--text-muted, #94a3b8);
-  --task-border: var(--border, rgba(255, 255, 255, 0.08));
-
-  /* Modern Palette Tokens */
-  --color-indigo: #6366f1;
-  --color-violet: #8b5cf6;
-  --color-purple: #a855f7;
-  --color-cyan: #06b6d4;
-  --color-sky: #38bdf8;
-  --color-emerald: #10b981;
-  --color-teal: #14b8a6;
-  --color-rose: #f43f5e;
-  --color-red: #ef4444;
-
-  min-height: calc(100vh - 70px);
-  max-width: var(--max-width, 1100px);
-  margin: 0 auto;
-  padding: 16px 24px 40px;
-  color: var(--task-text);
-  background:
-    radial-gradient(circle at 12% 12%, rgba(99, 102, 241, 0.14), transparent 45%),
-    radial-gradient(circle at 88% 18%, rgba(6, 182, 212, 0.12), transparent 45%),
-    radial-gradient(circle at 50% 85%, rgba(139, 92, 246, 0.10), transparent 45%),
-    var(--task-bg);
-  box-sizing: border-box;
-}
-
-/* =====================================================
-   HERO HEADER
-===================================================== */
-
-.task-hero {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--task-border);
-}
-
-.task-hero-content {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.task-hero-badge {
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--color-indigo), var(--color-cyan));
-  color: #ffffff;
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
-  flex-shrink: 0;
-}
-
-.task-eyebrow,
-.card-eyebrow {
-  display: block;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 1.2px;
-  color: #a5b4fc;
-  text-transform: uppercase;
-  margin-bottom: 2px;
-}
-
-.task-hero h1 {
-  margin: 0;
-  font-size: clamp(22px, 2.5vw, 28px);
-  font-weight: 800;
-  line-height: 1.2;
-  color: var(--task-text);
-}
-
-.task-hero p {
-  margin: 2px 0 0;
-  font-size: 13px;
-  color: var(--task-muted);
-}
-
-.task-hero-actions {
-  display: flex;
-  align-items: center;
-}
-
-.sync-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 6px 12px;
-  border-radius: 30px;
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  color: #34d399;
-  font-size: 11px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.sync-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background-color: #34d399;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
-  animation: pulse-dot 2s infinite ease-in-out;
-}
-
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.8); }
-}
-
-/* =====================================================
-   STATS OVERVIEW CARDS (4 ESSENTIAL CARDS)
-===================================================== */
-
-.task-page section {
-  padding: 0;
-}
-
-.task-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  padding: 0;
-  margin: 0 0 16px 0;
-}
-
-.stat-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: var(--task-card);
-  border: 1px solid var(--task-border);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-}
-
-.stat-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.total-icon {
-  background: rgba(99, 102, 241, 0.15);
-  color: #a5b4fc;
-  border: 1px solid rgba(99, 102, 241, 0.25);
-}
-
-.pending-icon {
-  background: rgba(139, 92, 246, 0.15);
-  color: #c084fc;
-  border: 1px solid rgba(139, 92, 246, 0.25);
-}
-
-.progress-icon {
-  background: rgba(6, 182, 212, 0.15);
-  color: #38bdf8;
-  border: 1px solid rgba(6, 182, 212, 0.25);
-}
-
-.completed-icon {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.25);
-}
-
-.stat-details {
-  display: flex;
-  flex-direction: column;
-}
-
-.stat-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--task-muted);
-}
-
-.stat-card strong {
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--task-text);
-  line-height: 1.1;
-}
-
-/* =====================================================
-   MAIN GRID & CARD LAYOUT
-===================================================== */
-
-.task-main-grid {
-  display: grid;
-  grid-template-columns: 370px 1fr;
-  gap: 16px;
-  align-items: start;
-}
-
-.task-form-card,
-.task-list-card {
-  background: var(--task-card);
-  border: 1px solid var(--task-border);
-  border-radius: 16px;
-  padding: 18px 20px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
-}
-
-.task-list-card {
-  min-height: 420px;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Card Header */
-.card-header,
-.list-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-}
-
-.card-header h2,
-.list-header h2 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--task-text);
-}
-
-.work-title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.task-count-badge {
-  padding: 2px 8px;
-  border-radius: 20px;
-  background: rgba(99, 102, 241, 0.15);
-  color: #a5b4fc;
-  font-size: 10px;
-  font-weight: 700;
-}
-
-/* Refresh Button */
-.refresh-btn {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--task-border);
-  border-radius: 8px;
-  background: transparent;
-  color: var(--task-muted);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.refresh-btn:hover:not(:disabled) {
-  background: rgba(99, 102, 241, 0.15);
-  color: #a5b4fc;
-  border-color: #6366f1;
-}
-
-.spin-icon {
-  animation: task-spin 0.8s linear infinite;
-}
-
-@keyframes task-spin {
-  to { transform: rotate(360deg); }
-}
-
-/* =====================================================
-   TASK FORM STYLING
-===================================================== */
-
-.task-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.input-group label {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--task-text);
-}
-
-.input-group input,
-.input-group textarea {
-  width: 100%;
-  padding: 9px 12px;
-  border: 1px solid var(--task-border);
-  border-radius: 9px;
-  background: rgba(0, 0, 0, 0.2);
-  color: var(--task-text);
-  font-family: inherit;
-  font-size: 13px;
-  outline: none;
-  box-sizing: border-box;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.input-group input:focus,
-.input-group textarea:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-}
-
-.input-group input::placeholder,
-.input-group textarea::placeholder {
-  color: var(--task-muted);
-  opacity: 0.6;
-}
-
-/* Status & Priority Selector Buttons */
-.status-selector,
-.priority-selector {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-}
-
-.status-option,
-.priority-option {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 8px 4px;
-  border: 1px solid var(--task-border);
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.15);
-  color: var(--task-muted);
-  font-size: 11px;
-  font-weight: 700;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.status-option:hover,
-.priority-option:hover {
-  border-color: var(--task-muted);
-  color: var(--task-text);
-}
-
-/* Status Active Colors */
-.status-option.active.pending-option {
-  background: rgba(99, 102, 241, 0.15);
-  border-color: #6366f1;
-  color: #a5b4fc;
-}
-
-.status-option.active.progress-option {
-  background: rgba(6, 182, 212, 0.15);
-  border-color: #06b6d4;
-  color: #38bdf8;
-}
-
-.status-option.active.completed-option {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: #10b981;
-  color: #34d399;
-}
-
-/* Priority Active Colors */
-.priority-option.active.prio-high {
-  background: rgba(239, 68, 68, 0.18);
-  border-color: #ef4444;
-  color: #f87171;
-}
-
-.priority-option.active.prio-medium {
-  background: rgba(139, 92, 246, 0.18);
-  border-color: #8b5cf6;
-  color: #c084fc;
-}
-
-.priority-option.active.prio-low {
-  background: rgba(20, 184, 166, 0.18);
-  border-color: #14b8a6;
-  color: #2dd4bf;
-}
-
-/* Form Action Buttons */
-.form-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.primary-task-btn {
-  flex: 1;
-  height: 40px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  border: none;
-  border-radius: 9px;
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
-  color: #ffffff;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 5px 15px rgba(99, 102, 241, 0.35);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.primary-task-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 7px 20px rgba(124, 58, 237, 0.45);
-}
-
-.primary-task-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.cancel-task-btn {
-  height: 40px;
-  padding: 0 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  border: 1px solid var(--task-border);
-  border-radius: 9px;
-  background: transparent;
-  color: var(--task-muted);
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cancel-task-btn:hover {
-  background: rgba(244, 63, 94, 0.15);
-  border-color: #f43f5e;
-  color: #f43f5e;
-}
-
-/* Form Footer */
-.form-footer {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 14px;
-  padding-top: 10px;
-  border-top: 1px solid var(--task-border);
-  font-size: 11px;
-  color: var(--task-muted);
-  line-height: 1.3;
-}
-
-.footer-db-icon {
-  color: #34d399;
-  flex-shrink: 0;
-}
-
-/* =====================================================
-   CONTROLS BAR (FILTERS)
-===================================================== */
-
-.controls-bar {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.filter-rows {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.task-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.filter-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 10px;
-  border: 1px solid var(--task-border);
-  border-radius: 7px;
-  background: transparent;
-  color: var(--task-muted);
-  font-size: 11px;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.filter-btn:hover {
-  border-color: var(--task-muted);
-  color: var(--task-text);
-}
-
-.filter-btn.active.filter-all {
-  background: rgba(99, 102, 241, 0.15);
-  border-color: #6366f1;
-  color: #a5b4fc;
-}
-
-.filter-btn.active.filter-pending {
-  background: rgba(139, 92, 246, 0.15);
-  border-color: #8b5cf6;
-  color: #c084fc;
-}
-
-.filter-btn.active.filter-progress {
-  background: rgba(6, 182, 212, 0.15);
-  border-color: #06b6d4;
-  color: #38bdf8;
-}
-
-.filter-btn.active.filter-completed {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: #10b981;
-  color: #34d399;
-}
-
-.filter-count {
-  padding: 1px 5px;
-  border-radius: 10px;
-  background: var(--task-border);
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.filter-btn.active .filter-count {
-  background: currentColor;
-  color: #090d16;
-}
-
-/* Priority Filters */
-.priority-filters {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.priority-filter-label {
-  font-size: 10px;
-  font-weight: 800;
-  color: var(--task-muted);
-  letter-spacing: 0.5px;
-  margin-right: 2px;
-}
-
-.prio-filter-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: 6px;
-  border: 1px solid var(--task-border);
-  background: transparent;
-  color: var(--task-muted);
-  font-size: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.prio-filter-btn.active.prio-all {
-  background: rgba(99, 102, 241, 0.15);
-  border-color: #6366f1;
-  color: #a5b4fc;
-}
-
-.prio-filter-btn.active.prio-high {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: #ef4444;
-  color: #f87171;
-}
-
-.prio-filter-btn.active.prio-medium {
-  background: rgba(139, 92, 246, 0.15);
-  border-color: #8b5cf6;
-  color: #c084fc;
-}
-
-.prio-filter-btn.active.prio-low {
-  background: rgba(20, 184, 166, 0.15);
-  border-color: #14b8a6;
-  color: #2dd4bf;
-}
-
-/* =====================================================
-   TASK LIST ITEMS (CLEAN SURFACE)
-===================================================== */
-
-.task-items {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.task-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px 14px;
-  border: 1px solid var(--task-border);
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.15);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-  position: relative;
-}
-
-.task-item:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
-  border-color: rgba(99, 102, 241, 0.35);
-}
-
-/* Toggle Check Status Button */
-.task-check {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 1px solid var(--task-border);
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-top: 1px;
-}
-
-.task-check:hover {
-  transform: scale(1.1);
-}
-
-.task-check.status-pending {
-  color: #a5b4fc;
-  border-color: rgba(99, 102, 241, 0.4);
-  background: rgba(99, 102, 241, 0.12);
-}
-
-.task-check.status-in-progress {
-  color: #38bdf8;
-  border-color: rgba(6, 182, 212, 0.4);
-  background: rgba(6, 182, 212, 0.12);
-}
-
-.task-check.status-completed {
-  color: #ffffff;
-  border-color: #10b981;
-  background: #10b981;
-}
-
-/* Task Info Content */
-.task-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.task-title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 4px;
-}
-
-.task-title-row h3 {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--task-text);
-  line-height: 1.25;
-}
-
-.task-completed .task-title-row h3 {
-  opacity: 0.85;
-}
-
-.task-info p {
-  margin: 0 0 6px;
-  font-size: 12px;
-  color: var(--task-muted);
-  line-height: 1.4;
-  word-break: break-word;
-}
-
-.task-meta {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 10px;
-  color: var(--task-muted);
-  opacity: 0.75;
-}
-
-.task-badges {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  flex-wrap: wrap;
-}
-
-/* Status Badges */
-.task-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 7px;
-  border-radius: 16px;
-  font-size: 9px;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.status-badge-pending {
-  background: rgba(99, 102, 241, 0.14);
-  color: #a5b4fc;
-  border: 1px solid rgba(99, 102, 241, 0.28);
-}
-
-.status-badge-in-progress {
-  background: rgba(6, 182, 212, 0.14);
-  color: #38bdf8;
-  border: 1px solid rgba(6, 182, 212, 0.28);
-}
-
-.status-badge-completed {
-  background: rgba(16, 185, 129, 0.14);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.28);
-}
-
-/* Priority Badges */
-.priority-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 7px;
-  border-radius: 16px;
-  font-size: 9px;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.prio-badge-high {
-  background: rgba(239, 68, 68, 0.14);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.28);
-}
-
-.prio-badge-medium {
-  background: rgba(139, 92, 246, 0.14);
-  color: #c084fc;
-  border: 1px solid rgba(139, 92, 246, 0.28);
-}
-
-.prio-badge-low {
-  background: rgba(20, 184, 166, 0.14);
-  color: #2dd4bf;
-  border: 1px solid rgba(20, 184, 166, 0.28);
-}
-
-/* Action Buttons */
-.task-actions {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  flex-shrink: 0;
-}
-
-.task-action {
-  width: 30px;
-  height: 30px;
-  border-radius: 7px;
-  border: 1px solid var(--task-border);
-  background: transparent;
-  color: var(--task-muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.edit-action:hover {
-  background: rgba(99, 102, 241, 0.15);
-  border-color: #6366f1;
-  color: #a5b4fc;
-}
-
-.delete-action:hover {
-  background: rgba(244, 63, 94, 0.15);
-  border-color: #f43f5e;
-  color: #f43f5e;
-}
-
-/* =====================================================
-   EMPTY & LOADING STATES
-===================================================== */
-
-.task-loading,
-.empty-tasks {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 30px 16px;
-  text-align: center;
-}
-
-.loading-spinner {
-  color: #6366f1;
-  margin-bottom: 10px;
-}
-
-.task-loading h3,
-.empty-tasks h3 {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--task-text);
-}
-
-.task-loading p,
-.empty-tasks p {
-  margin: 4px 0 0;
-  font-size: 12px;
-  color: var(--task-muted);
-  max-width: 280px;
-}
-
-.empty-task-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  background: rgba(99, 102, 241, 0.15);
-  color: #a5b4fc;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 12px;
-}
-
-/* =====================================================
-   TOAST NOTIFICATION
-===================================================== */
-
-.task-toast {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  border-radius: 10px;
-  background: var(--task-card);
-  border: 1px solid var(--task-border);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
-  color: var(--task-text);
-  font-size: 12px;
-  animation: toast-slide-in 0.3s ease;
-}
-
-@keyframes toast-slide-in {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-.toast-icon {
-  display: flex;
-  align-items: center;
-}
-
-.toast-success .toast-icon { color: #34d399; }
-.toast-error .toast-icon { color: #f43f5e; }
-.toast-info .toast-icon { color: #a5b4fc; }
-
-.toast-content {
-  display: flex;
-  flex-direction: column;
-}
-
-.toast-content strong {
-  font-size: 11px;
-  line-height: 1.2;
-}
-
-.toast-content span {
-  font-size: 11px;
-  color: var(--task-muted);
-}
-
-.toast-method {
-  padding: 1px 5px;
-  border-radius: 4px;
-  background: var(--task-border);
-  font-size: 9px;
-  font-weight: 800;
-  color: var(--task-muted);
-}
-
-.toast-close {
-  background: transparent;
-  border: none;
-  color: var(--task-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* =====================================================
-   RESPONSIVE BREAKPOINTS
-===================================================== */
-
-@media (max-width: 960px) {
-  .task-main-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .task-hero {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-@media (max-width: 800px) {
-  .task-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 600px) {
-  .task-page {
-    padding: 14px 12px 30px;
-  }
-
-  .status-selector,
-  .priority-selector {
-    grid-template-columns: 1fr;
-  }
-
-  .task-item {
-    flex-wrap: wrap;
-  }
-
-  .task-actions {
-    width: 100%;
-    justify-content: flex-end;
-    margin-top: 4px;
-    padding-top: 6px;
-    border-top: 1px dashed var(--task-border);
-  }
-}
-`;
+import "./TaskManager.css";
 
 function TaskManager() {
   const [tasks, setTasks] = useState([]);
@@ -1053,13 +59,32 @@ function TaskManager() {
   const [status, setStatus] = useState("Pending");
   const [priority, setPriority] = useState("Medium");
   const [editingId, setEditingId] = useState(null);
-  const [filter, setFilter] = useState("All");
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [priorityFilter, setPriorityFilter] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingTasks, setLoadingTasks] = useState(true);
   const [toast, setToast] = useState(null);
   const [currentUser, setCurrentUser] = useState(() => getCurrentUser());
   const [loggedIn, setLoggedIn] = useState(() => isAuthenticated());
+  const [draggedTaskId, setDraggedTaskId] = useState(null);
+  const [dragOverCol, setDragOverCol] = useState(null);
+
+  // Admin Report Generator States
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportStartDate, setReportStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 30);
+    return d.toISOString().split("T")[0];
+  });
+  const [reportEndDate, setReportEndDate] = useState(() => {
+    return new Date().toISOString().split("T")[0];
+  });
+  const [reportData, setReportData] = useState(null);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportError, setReportError] = useState(null);
+  const [lastGeneratedFile, setLastGeneratedFile] = useState(null);
+
   const navigate = useNavigate();
 
   // Helper to normalize backend status and priority values
@@ -1094,10 +119,7 @@ function TaskManager() {
     };
   };
 
-  // =====================================================
-  // TOAST
-  // =====================================================
-
+  // Toast
   const showToast = (type, message, operation = "") => {
     setToast({
       type,
@@ -1110,10 +132,7 @@ function TaskManager() {
     }, 3000);
   };
 
-  // =====================================================
-  // GET (Authenticated)
-  // =====================================================
-
+  // Auth & Task Loading
   useEffect(() => {
     const handleAuthEvent = () => {
       setCurrentUser(getCurrentUser());
@@ -1132,7 +151,6 @@ function TaskManager() {
     if (!isAuthenticated()) {
       setLoggedIn(false);
       setLoadingTasks(false);
-      showToast("info", "Please log in to manage your tasks", "AUTH");
       return;
     }
 
@@ -1160,10 +178,26 @@ function TaskManager() {
     }
   };
 
-  // =====================================================
-  // POST / PUT
-  // =====================================================
+  // Task Creation / Editing Modal Controls
+  const openCreateModal = (defaultStatus = "Pending") => {
+    setEditingId(null);
+    setTitle("");
+    setDescription("");
+    setStatus(defaultStatus);
+    setPriority("Medium");
+    setIsModalOpen(true);
+  };
 
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingId(null);
+    setTitle("");
+    setDescription("");
+    setStatus("Pending");
+    setPriority("Medium");
+  };
+
+  // POST / PUT Task Handler
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -1177,7 +211,6 @@ function TaskManager() {
       const isCompleted = status === "Completed";
 
       if (editingId) {
-        // PUT
         const updatedRaw = await updateTask(editingId, {
           title: title.trim(),
           description: description.trim(),
@@ -1195,9 +228,8 @@ function TaskManager() {
         );
 
         showToast("success", "Task updated successfully", "PUT");
-        setEditingId(null);
+        closeModal();
       } else {
-        // POST
         const newRaw = await createTask({
           title: title.trim(),
           description: description.trim(),
@@ -1210,12 +242,8 @@ function TaskManager() {
 
         setTasks((previousTasks) => [newTask, ...previousTasks]);
         showToast("success", "Task created successfully", "POST");
+        closeModal();
       }
-
-      setTitle("");
-      setDescription("");
-      setStatus("Pending");
-      setPriority("Medium");
     } catch (error) {
       console.error(error);
       showToast(
@@ -1228,10 +256,6 @@ function TaskManager() {
     }
   };
 
-  // =====================================================
-  // EDIT
-  // =====================================================
-
   const handleEdit = (task) => {
     const norm = normalizeTask(task);
     setEditingId(norm._id);
@@ -1239,40 +263,15 @@ function TaskManager() {
     setDescription(norm.description || "");
     setStatus(norm.status);
     setPriority(norm.priority);
-
-    showToast("info", "Task loaded into editor", "EDIT");
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    setIsModalOpen(true);
   };
-
-  // =====================================================
-  // CANCEL EDIT
-  // =====================================================
-
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setTitle("");
-    setDescription("");
-    setStatus("Pending");
-    setPriority("Medium");
-    showToast("info", "Editing cancelled", "CANCEL");
-  };
-
-  // =====================================================
-  // DELETE
-  // =====================================================
 
   const handleDelete = async (id) => {
     const confirmed = window.confirm(
       "Are you sure you want to delete this task?"
     );
 
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     try {
       setLoading(true);
@@ -1291,11 +290,9 @@ function TaskManager() {
     }
   };
 
-  // =====================================================
-  // STATUS CHANGE
-  // =====================================================
-
   const handleStatusChange = async (task, newStatus) => {
+    if (task.status === newStatus) return;
+
     try {
       setLoading(true);
       const updatedRaw = await updateTask(task._id, {
@@ -1314,7 +311,7 @@ function TaskManager() {
         )
       );
 
-      showToast("success", `Task moved to ${newStatus}`, "PUT");
+      showToast("success", `Moved to ${newStatus}`, "PUT");
     } catch (error) {
       console.error(error);
       showToast("error", "Failed to update task status", "PUT");
@@ -1323,64 +320,552 @@ function TaskManager() {
     }
   };
 
-  // =====================================================
-  // STATISTICS
-  // =====================================================
-
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(
-    (task) => task.status === "Completed"
-  ).length;
-  const inProgressTasks = tasks.filter(
-    (task) => task.status === "In Progress"
-  ).length;
-  const pendingTasks = tasks.filter(
-    (task) => task.status === "Pending"
-  ).length;
-
-  // =====================================================
-  // FILTERING
-  // =====================================================
-
-  const filteredTasks = tasks.filter((task) => {
-    const matchesStatus = filter === "All" || task.status === filter;
-    const matchesPriority =
-      priorityFilter === "All" || task.priority === priorityFilter;
-
-    return matchesStatus && matchesPriority;
-  });
-
-  // =====================================================
-  // STATUS & PRIORITY ICON HELPERS
-  // =====================================================
-
-  const getStatusIcon = (taskStatus) => {
-    if (taskStatus === "Completed") {
-      return <CheckCircle2 size={15} />;
-    }
-    if (taskStatus === "In Progress") {
-      return <Zap size={15} />;
-    }
-    return <Clock size={15} />;
+  // Drag and Drop Handlers
+  const handleDragStart = (e, task) => {
+    e.dataTransfer.setData("text/plain", task._id);
+    e.dataTransfer.effectAllowed = "move";
+    setDraggedTaskId(task._id);
   };
+
+  const handleDragOver = (e, columnStatus) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverCol !== columnStatus) {
+      setDragOverCol(columnStatus);
+    }
+  };
+
+  const handleDragLeave = (e) => {
+    if (e.currentTarget.contains(e.relatedTarget)) return;
+    setDragOverCol(null);
+  };
+
+  const handleDrop = async (e, targetStatus) => {
+    e.preventDefault();
+    setDragOverCol(null);
+    const taskId = e.dataTransfer.getData("text/plain") || draggedTaskId;
+    setDraggedTaskId(null);
+
+    if (!taskId) return;
+    const task = tasks.find((t) => t._id === taskId);
+    if (!task) return;
+
+    if (task.status !== targetStatus) {
+      await handleStatusChange(task, targetStatus);
+    }
+  };
+
+  const handleDragEnd = () => {
+    setDraggedTaskId(null);
+    setDragOverCol(null);
+  };
+
+  // Admin Report Handlers: Fetch data, generate PDF, and export CSV
+  const handleFetchAdminReport = async (silent = false) => {
+    setReportLoading(true);
+    setReportError(null);
+    try {
+      const data = await getAdminTaskReport({
+        startDate: reportStartDate,
+        endDate: reportEndDate,
+      });
+      setReportData(data);
+      if (!silent) {
+        showToast("success", "Admin report data loaded", "REPORT");
+      }
+      return data;
+    } catch (err) {
+      console.error("Report Fetch Error:", err);
+      setReportError(err.message || "Failed to generate report. Admin authorization required.");
+      showToast("error", err.message || "Forbidden: Admin access required", "403");
+      return null;
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
+  const handleDownloadReportCsv = async () => {
+    try {
+      await downloadAdminTaskReportCsv({
+        startDate: reportStartDate,
+        endDate: reportEndDate,
+      });
+      const fileName = `Task_Report_${reportStartDate}_to_${reportEndDate}.csv`;
+      setLastGeneratedFile(fileName);
+      showToast("success", `CSV report exported: ${fileName}`, "EXPORT");
+    } catch (err) {
+      showToast("error", err.message || "Failed to export CSV", "EXPORT");
+    }
+  };
+
+  const handleGeneratePdfReport = async () => {
+    setReportLoading(true);
+    let currentData = reportData;
+    try {
+      if (!currentData) {
+        currentData = await handleFetchAdminReport(true);
+      }
+    } catch (err) {
+      showToast("error", "Failed to retrieve report data", "PDF");
+      return;
+    } finally {
+      setReportLoading(false);
+    }
+
+    if (!currentData) return;
+
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      window.print();
+      return;
+    }
+
+    const total = currentData.metrics?.totalTasks || 0;
+    const completed = currentData.metrics?.completedTasks || 0;
+    const inProgress = currentData.metrics?.inProgressTasks || 0;
+    const pending = currentData.metrics?.pendingTasks || 0;
+    const compRate = currentData.metrics?.completionRate || "0%";
+    const highPrio = currentData.metrics?.byPriority?.high || 0;
+    const medPrio = currentData.metrics?.byPriority?.medium || 0;
+    const lowPrio = currentData.metrics?.byPriority?.low || 0;
+    const tasks = currentData.tasks || [];
+    const reportId = `REP-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const generatedDateStr = new Date().toLocaleString("en-IN", {
+      dateStyle: "full",
+      timeStyle: "medium",
+    });
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <title>Task Activity & Performance Audit Report - ${reportStartDate} to ${reportEndDate}</title>
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+          <style>
+            @page {
+              size: A4 portrait;
+              margin: 12mm 15mm 15mm 15mm;
+            }
+            * {
+              box-sizing: border-box;
+              margin: 0;
+              padding: 0;
+              font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            }
+            body {
+              background-color: #ffffff;
+              color: #0f172a;
+              padding: 24px 30px;
+              line-height: 1.5;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .top-stripe {
+              height: 5px;
+              background: linear-gradient(90deg, #4f46e5, #7c3aed, #06b6d4);
+              border-radius: 4px;
+              margin-bottom: 24px;
+            }
+            .header-container {
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              border-bottom: 1.5px solid #e2e8f0;
+              padding-bottom: 18px;
+              margin-bottom: 20px;
+            }
+            .brand-badge {
+              display: inline-block;
+              background: #eef2ff;
+              color: #4338ca;
+              border: 1px solid #c7d2fe;
+              font-size: 10px;
+              font-weight: 800;
+              letter-spacing: 0.08em;
+              text-transform: uppercase;
+              padding: 3px 8px;
+              border-radius: 4px;
+              margin-bottom: 8px;
+            }
+            h1 {
+              font-size: 24px;
+              font-weight: 800;
+              color: #0f172a;
+              letter-spacing: -0.02em;
+              line-height: 1.25;
+              margin-bottom: 4px;
+            }
+            .header-subtitle {
+              font-size: 12px;
+              color: #64748b;
+              font-weight: 500;
+            }
+            .header-meta-card {
+              text-align: right;
+              background: #f8fafc;
+              border: 1px solid #e2e8f0;
+              border-radius: 8px;
+              padding: 10px 14px;
+              min-width: 220px;
+            }
+            .header-meta-item {
+              font-size: 11px;
+              color: #64748b;
+              margin-bottom: 3px;
+            }
+            .header-meta-item strong {
+              color: #1e293b;
+              font-weight: 700;
+            }
+            .confidential-tag {
+              display: inline-block;
+              background: #fef2f2;
+              color: #b91c1c;
+              border: 1px solid #fecaca;
+              font-size: 9px;
+              font-weight: 800;
+              padding: 2px 6px;
+              border-radius: 3px;
+              letter-spacing: 0.05em;
+              margin-top: 4px;
+            }
+            .summary-bar {
+              background: #f1f5f9;
+              border-left: 4px solid #4f46e5;
+              border-radius: 6px;
+              padding: 10px 16px;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 20px;
+              font-size: 12px;
+            }
+            .summary-bar span {
+              color: #475569;
+            }
+            .summary-bar strong {
+              color: #0f172a;
+              font-weight: 700;
+            }
+            .metrics-grid {
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 12px;
+              margin-bottom: 20px;
+            }
+            .metric-card {
+              background: #ffffff;
+              border: 1px solid #e2e8f0;
+              border-radius: 10px;
+              padding: 14px 16px;
+              position: relative;
+            }
+            .metric-card::before {
+              content: '';
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              height: 3.5px;
+              border-radius: 10px 10px 0 0;
+            }
+            .card-total::before { background: #4f46e5; }
+            .card-completed::before { background: #10b981; }
+            .card-progress::before { background: #0284c7; }
+            .card-rate::before { background: #8b5cf6; }
+
+            .metric-label {
+              font-size: 10.5px;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.06em;
+              color: #64748b;
+              margin-bottom: 6px;
+            }
+            .metric-number {
+              font-size: 26px;
+              font-weight: 800;
+              color: #0f172a;
+              line-height: 1.1;
+              margin-bottom: 4px;
+            }
+            .metric-subtext {
+              font-size: 11px;
+              color: #94a3b8;
+              font-weight: 500;
+            }
+            .analytics-strip {
+              background: #f8fafc;
+              border: 1px solid #e2e8f0;
+              border-radius: 8px;
+              padding: 12px 18px;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 22px;
+              font-size: 12px;
+            }
+            .prio-tags-group {
+              display: flex;
+              gap: 14px;
+              align-items: center;
+            }
+            .prio-pill {
+              display: inline-flex;
+              align-items: center;
+              gap: 5px;
+              padding: 3px 9px;
+              border-radius: 5px;
+              font-size: 11px;
+              font-weight: 700;
+            }
+            .prio-pill-high { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+            .prio-pill-med { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+            .prio-pill-low { background: #ccfbf1; color: #0f766e; border: 1px solid #99f6e4; }
+
+            .section-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 10px;
+            }
+            .section-header h2 {
+              font-size: 14.5px;
+              font-weight: 800;
+              color: #0f172a;
+              letter-spacing: -0.01em;
+            }
+            .section-header span {
+              font-size: 11px;
+              color: #64748b;
+              font-weight: 600;
+            }
+            .tasks-table {
+              width: 100%;
+              border-collapse: collapse;
+              font-size: 12px;
+              margin-bottom: 24px;
+            }
+            .tasks-table th {
+              background: #1e293b;
+              color: #f8fafc;
+              font-size: 10px;
+              font-weight: 700;
+              letter-spacing: 0.05em;
+              text-transform: uppercase;
+              padding: 9px 12px;
+              border: 1px solid #1e293b;
+            }
+            .tasks-table td {
+              padding: 9px 12px;
+              border: 1px solid #e2e8f0;
+              color: #334155;
+              vertical-align: middle;
+            }
+            .tasks-table tr:nth-child(even) td {
+              background: #f8fafc;
+            }
+            .status-badge {
+              display: inline-block;
+              padding: 2.5px 8px;
+              border-radius: 999px;
+              font-size: 10.5px;
+              font-weight: 700;
+              text-align: center;
+            }
+            .status-completed { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+            .status-inprogress { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+            .status-pending { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+            .report-footer {
+              border-top: 1.5px solid #e2e8f0;
+              padding-top: 16px;
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-end;
+              font-size: 11px;
+              color: #64748b;
+            }
+            .signoff-box {
+              text-align: right;
+            }
+            .signoff-line {
+              width: 170px;
+              border-bottom: 1px solid #94a3b8;
+              margin-bottom: 4px;
+              margin-left: auto;
+            }
+            .disclaimer {
+              font-size: 10px;
+              color: #94a3b8;
+              max-width: 480px;
+              line-height: 1.4;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="top-stripe"></div>
+          
+          <header class="header-container">
+            <div>
+              <div class="brand-badge">Official Administrative Audit</div>
+              <h1>Task Activity & Performance Report</h1>
+              <p class="header-subtitle">Enterprise Productivity Metrics & Task Lifecycle Inventory</p>
+            </div>
+            <div class="header-meta-card">
+              <div class="header-meta-item">Document ID: <strong>${reportId}</strong></div>
+              <div class="header-meta-item">Admin: <strong>${currentUser?.email || "admin@portfolio.com"}</strong></div>
+              <div class="header-meta-item">Generated: <strong>${generatedDateStr}</strong></div>
+              <div class="confidential-tag">RESTRICTED AUDIT ACCESS</div>
+            </div>
+          </header>
+
+          <div class="summary-bar">
+            <div>
+              <span>Reporting Date Window:</span> 
+              <strong>${reportStartDate}</strong> &nbsp;to&nbsp; <strong>${reportEndDate}</strong>
+            </div>
+            <div>
+              <span>Database Cluster:</span> <strong>MongoDB Production Node</strong>
+            </div>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="metric-card card-total">
+              <div class="metric-label">Total Created</div>
+              <div class="metric-number">${total}</div>
+              <div class="metric-subtext">Tasks in selected window</div>
+            </div>
+            <div class="metric-card card-completed">
+              <div class="metric-label">Completed</div>
+              <div class="metric-number" style="color: #059669;">${completed}</div>
+              <div class="metric-subtext">Verified SLA deliveries</div>
+            </div>
+            <div class="metric-card card-progress">
+              <div class="metric-label">In Progress</div>
+              <div class="metric-number" style="color: #0284c7;">${inProgress}</div>
+              <div class="metric-subtext">Active workflow items</div>
+            </div>
+            <div class="metric-card card-rate">
+              <div class="metric-label">Completion Rate</div>
+              <div class="metric-number" style="color: #7c3aed;">${compRate}</div>
+              <div class="metric-subtext">Efficiency benchmark</div>
+            </div>
+          </div>
+
+          <div class="analytics-strip">
+            <span style="font-weight: 700; color: #1e293b;">Priority Distribution Summary:</span>
+            <div class="prio-tags-group">
+              <span class="prio-pill prio-pill-high">🔥 High: <strong>${highPrio}</strong> (${total > 0 ? Math.round((highPrio / total) * 100) : 0}%)</span>
+              <span class="prio-pill prio-pill-med">⚡ Medium: <strong>${medPrio}</strong> (${total > 0 ? Math.round((medPrio / total) * 100) : 0}%)</span>
+              <span class="prio-pill prio-pill-low">↓ Low: <strong>${lowPrio}</strong> (${total > 0 ? Math.round((lowPrio / total) * 100) : 0}%)</span>
+            </div>
+          </div>
+
+          <div class="section-header">
+            <h2>Audited Tasks Record</h2>
+            <span>${tasks.length} item${tasks.length !== 1 ? "s" : ""} recorded</span>
+          </div>
+
+          <table class="tasks-table">
+            <thead>
+              <tr>
+                <th style="width: 5%; text-align: center;">#</th>
+                <th style="width: 25%; text-align: left;">Task Title</th>
+                <th style="width: 32%; text-align: left;">Description / Scope</th>
+                <th style="width: 14%; text-align: center;">Status</th>
+                <th style="width: 12%; text-align: center;">Priority</th>
+                <th style="width: 12%; text-align: center;">Created Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tasks.length === 0 ? `
+                <tr>
+                  <td colspan="6" style="text-align: center; padding: 24px; color: #64748b;">
+                    No tasks found within the selected date window (${reportStartDate} to ${reportEndDate}).
+                  </td>
+                </tr>
+              ` : tasks.map((t, idx) => {
+                const s = String(t.status || "Pending").trim();
+                const sClass = s.toLowerCase() === "completed" ? "status-completed" : (s.toLowerCase() === "in progress" ? "status-inprogress" : "status-pending");
+                const p = String(t.priority || "Medium").trim();
+                const pClass = p.toLowerCase() === "high" ? "prio-pill-high" : (p.toLowerCase() === "low" ? "prio-pill-low" : "prio-pill-med");
+                const d = t.createdAt ? new Date(t.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "-";
+                return `
+                  <tr>
+                    <td style="text-align: center; color: #94a3b8; font-weight: 600;">${idx + 1}</td>
+                    <td style="font-weight: 700; color: #0f172a;">${t.title || "Untitled"}</td>
+                    <td style="color: #475569;">${t.description || "-"}</td>
+                    <td style="text-align: center;"><span class="status-badge ${sClass}">${s}</span></td>
+                    <td style="text-align: center;"><span class="prio-pill ${pClass}" style="padding: 2px 7px; font-size: 10.5px;">${p}</span></td>
+                    <td style="text-align: center; color: #64748b; font-weight: 500;">${d}</td>
+                  </tr>
+                `;
+              }).join("")}
+            </tbody>
+          </table>
+
+          <footer class="report-footer">
+            <div class="disclaimer">
+              <strong>CONFIDENTIAL DOCUMENT:</strong> Generated via Admin RBAC authentication in the Portfolio Task Suite. All metrics reflect database states within the specified timeframe.
+            </div>
+            <div class="signoff-box">
+              <div class="signoff-line"></div>
+              <div>Authorized Administrator Sign-off</div>
+              <div style="font-size: 9.5px; color: #94a3b8;">System Verification Verified • Page 1 of 1</div>
+            </div>
+          </footer>
+
+          <script>
+            window.onload = function() {
+              setTimeout(function() {
+                window.print();
+              }, 300);
+            };
+          </script>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
+
+  // Filtering
+  const totalTasks = tasks.length;
+  const pendingTasksList = tasks.filter((task) => task.status === "Pending");
+  const inProgressTasksList = tasks.filter((task) => task.status === "In Progress");
+  const completedTasksList = tasks.filter((task) => task.status === "Completed");
+
+  const filterTaskList = (taskList) => {
+    return taskList.filter((task) => {
+      const matchesPriority =
+        priorityFilter === "All" || task.priority === priorityFilter;
+      const matchesSearch =
+        searchQuery.trim() === "" ||
+        task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (task.description &&
+          task.description.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      return matchesPriority && matchesSearch;
+    });
+  };
+
+  const pendingFiltered = filterTaskList(pendingTasksList);
+  const inProgressFiltered = filterTaskList(inProgressTasksList);
+  const completedFiltered = filterTaskList(completedTasksList);
 
   const getPriorityIcon = (taskPrio) => {
-    if (taskPrio === "High") {
-      return <Flame size={13} />;
-    }
-    if (taskPrio === "Low") {
-      return <ArrowDownCircle size={13} />;
-    }
-    return <AlertTriangle size={13} />;
+    if (taskPrio === "High") return <Flame size={12} />;
+    if (taskPrio === "Low") return <ArrowDownCircle size={12} />;
+    return <AlertTriangle size={12} />;
   };
-
-  // =====================================================
-  // UI
-  // =====================================================
 
   return (
     <div className="task-page">
-      <style>{taskStyles}</style>
 
       {/* TOAST NOTIFICATION */}
       {toast && (
@@ -1417,16 +902,16 @@ function TaskManager() {
       <header className="task-hero">
         <div className="task-hero-content">
           <div className="task-hero-badge">
-            <Sparkles size={18} />
+            <Kanban size={22} />
           </div>
           <div>
             <span className="task-eyebrow">WORKFLOW MANAGEMENT</span>
-            <h1>Task Workspace</h1>
-            <p>Organize, prioritize, and execute your tasks with MongoDB sync.</p>
+            <h1>Kanban Workspace</h1>
+            <p>Drag and drop cards across columns to track and update task progress.</p>
           </div>
         </div>
 
-        <div className="task-hero-actions" style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+        <div className="task-hero-actions">
           <div className="sync-badge">
             <span className="sync-dot"></span>
             <Database size={13} />
@@ -1443,13 +928,15 @@ function TaskManager() {
                 borderRadius: "999px",
                 fontSize: "12px",
                 fontWeight: "600",
-                background: "rgba(16, 185, 129, 0.12)",
-                color: "#10b981",
-                border: "1px solid rgba(16, 185, 129, 0.25)",
+                background: currentUser?.role === "admin" ? "rgba(139, 92, 246, 0.15)" : "rgba(16, 185, 129, 0.12)",
+                color: currentUser?.role === "admin" ? "#c084fc" : "#10b981",
+                border: currentUser?.role === "admin" ? "1px solid rgba(139, 92, 246, 0.35)" : "1px solid rgba(16, 185, 129, 0.25)",
               }}
             >
               <CheckCircle2 size={13} />
-              <span>JWT Authenticated ({currentUser?.email || "Student"})</span>
+              <span>
+                {currentUser?.role === "admin" ? "Admin" : "JWT"} ({currentUser?.email || "User"})
+              </span>
             </div>
           ) : (
             <Link
@@ -1468,493 +955,1100 @@ function TaskManager() {
                 boxShadow: "0 2px 8px rgba(99, 102, 241, 0.3)",
               }}
             >
-              <span>Sign In to Edit Tasks</span>
+              <span>Sign In to Edit</span>
             </Link>
           )}
+
+          {/* ADMIN REPORT BUTTON (Visible to Administrators) */}
+          {currentUser?.role === "admin" && (
+            <button
+              className="admin-report-hero-btn"
+              onClick={() => {
+                setIsReportModalOpen(true);
+                handleFetchAdminReport(false);
+              }}
+              title="Admin Report Generator"
+            >
+              <FileText size={15} />
+              <span>Admin Reports</span>
+            </button>
+          )}
+
+          <button
+            className="new-task-hero-btn"
+            onClick={() => openCreateModal("Pending")}
+          >
+            <Plus size={16} />
+            <span>New Task</span>
+          </button>
         </div>
       </header>
 
-      {/* Practical 7 Authentication Status Banner (when logged out) */}
-      {!loggedIn && (
-        <div
-          style={{
-            background: "rgba(99, 102, 241, 0.08)",
-            border: "1px solid rgba(99, 102, 241, 0.25)",
-            borderRadius: "14px",
-            padding: "16px 20px",
-            marginBottom: "20px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: "14px",
-          }}
+      {/* TOOLBAR CONTROLS: SEARCH & PRIORITY FILTERS */}
+      <div className="kanban-toolbar">
+        <div className="toolbar-left">
+          <div className="search-input-box">
+            <Search size={14} className="search-icon-pos" />
+            <input
+              type="text"
+              placeholder="Search cards in board..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                className="search-clear-btn"
+                onClick={() => setSearchQuery("")}
+                title="Clear search"
+              >
+                <X size={13} />
+              </button>
+            )}
+          </div>
+
+          <div className="priority-filter-group">
+            <span className="prio-label-tag">Priority:</span>
+            {[
+              { label: "All", cls: "prio-all" },
+              { label: "High", cls: "prio-high" },
+              { label: "Medium", cls: "prio-medium" },
+              { label: "Low", cls: "prio-low" },
+            ].map(({ label, cls }) => (
+              <button
+                key={label}
+                className={`prio-pill-btn ${
+                  priorityFilter === label ? `active ${cls}` : ""
+                }`}
+                onClick={() => setPriorityFilter(label)}
+              >
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="toolbar-right">
+          <span style={{ fontSize: "12px", color: "var(--task-muted)", fontWeight: "600" }}>
+            {totalTasks} Total Tasks
+          </span>
+          <button
+            className="refresh-action-btn"
+            onClick={loadTasks}
+            disabled={loadingTasks}
+            title="Refresh Kanban board"
+          >
+            <RefreshCw size={14} className={loadingTasks ? "spin-icon" : ""} />
+          </button>
+        </div>
+      </div>
+
+      {/* KANBAN 3-COLUMN BOARD */}
+      <main className="kanban-board">
+        {/* COLUMN 1: PENDING */}
+        <section
+          className={`kanban-column ${
+            dragOverCol === "Pending" ? "drag-over-pending" : ""
+          }`}
+          onDragOver={(e) => handleDragOver(e, "Pending")}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, "Pending")}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <div
-              style={{
-                width: "36px",
-                height: "36px",
-                borderRadius: "10px",
-                background: "rgba(99, 102, 241, 0.2)",
-                color: "var(--primary, #6366f1)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Sparkles size={18} />
-            </div>
-            <div>
-              <strong style={{ display: "block", fontSize: "14px", color: "var(--text-main, #ffffff)" }}>
-                Secure Workspace • Authentication Active
-              </strong>
-              <span style={{ fontSize: "13px", color: "var(--text-muted, #94a3b8)" }}>
-                Task CRUD operations require a valid JWT token in the <code>Authorization: Bearer</code> header.
+          <div className="column-header">
+            <div className="column-header-title">
+              <span className="col-indicator-dot dot-pending"></span>
+              <h2>
+                <Clock size={16} color="#818cf8" />
+                <span>Pending</span>
+              </h2>
+              <span className="column-count-badge count-pending">
+                {pendingFiltered.length}
               </span>
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: "10px" }}>
-            <Link
-              to="/login"
-              style={{
-                padding: "8px 16px",
-                borderRadius: "8px",
-                background: "linear-gradient(135deg, #6366f1, #4f46e5)",
-                color: "#ffffff",
-                fontSize: "13px",
-                fontWeight: "600",
-                textDecoration: "none",
-              }}
-            >
-              Login
-            </Link>
-            <Link
-              to="/register"
-              style={{
-                padding: "8px 16px",
-                borderRadius: "8px",
-                background: "rgba(255, 255, 255, 0.06)",
-                border: "1px solid var(--border, rgba(255, 255, 255, 0.1))",
-                color: "var(--text-main, #ffffff)",
-                fontSize: "13px",
-                fontWeight: "600",
-                textDecoration: "none",
-              }}
-            >
-              Register
-            </Link>
+          <div className="column-body">
+            {pendingFiltered.length === 0 ? (
+              <div className="empty-column-box">
+                <Clock size={24} className="empty-col-icon" />
+                <span>No Pending Tasks</span>
+                <p>Drag cards here</p>
+              </div>
+            ) : (
+              pendingFiltered.map((task) => (
+                <div
+                  key={task._id}
+                  className={`kanban-card ${
+                    draggedTaskId === task._id ? "is-dragging" : ""
+                  }`}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, task)}
+                  onDragEnd={handleDragEnd}
+                >
+                  <div className="card-top-row">
+                    <div className="card-top-left">
+                      <span className="drag-grip" title="Drag to reorder">
+                        <GripVertical size={13} />
+                      </span>
+                      <span
+                        className={`priority-badge prio-badge-${task.priority.toLowerCase()}`}
+                      >
+                        {getPriorityIcon(task.priority)}
+                        <span>{task.priority}</span>
+                      </span>
+                    </div>
+
+                    <div className="card-quick-actions">
+                      <button
+                        className="card-icon-action edit-btn"
+                        onClick={() => handleEdit(task)}
+                        title="Edit task"
+                      >
+                        <Pencil size={13} />
+                      </button>
+                      <button
+                        className="card-icon-action delete-btn"
+                        onClick={() => handleDelete(task._id)}
+                        title="Delete task"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="card-content">
+                    <h3>{task.title}</h3>
+                    {task.description && <p>{task.description}</p>}
+                  </div>
+
+                  <div className="card-footer">
+                    <span className="card-meta-date">
+                      <Calendar size={11} />
+                      <span>
+                        {new Date(task.createdAt || Date.now()).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                        })}
+                      </span>
+                    </span>
+
+                    <div className="move-buttons-group">
+                      <button
+                        className="move-pill-btn"
+                        onClick={() => handleStatusChange(task, "In Progress")}
+                        title="Move to In Progress"
+                      >
+                        <span>Start</span>
+                        <ArrowRight size={11} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+
+        {/* COLUMN 2: IN PROGRESS */}
+        <section
+          className={`kanban-column ${
+            dragOverCol === "In Progress" ? "drag-over-inprogress" : ""
+          }`}
+          onDragOver={(e) => handleDragOver(e, "In Progress")}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, "In Progress")}
+        >
+          <div className="column-header">
+            <div className="column-header-title">
+              <span className="col-indicator-dot dot-inprogress"></span>
+              <h2>
+                <Zap size={16} color="#38bdf8" />
+                <span>In Progress</span>
+              </h2>
+              <span className="column-count-badge count-inprogress">
+                {inProgressFiltered.length}
+              </span>
+            </div>
+          </div>
+
+          <div className="column-body">
+            {inProgressFiltered.length === 0 ? (
+              <div className="empty-column-box">
+                <Zap size={24} className="empty-col-icon" />
+                <span>No Tasks in Progress</span>
+                <p>Drag active tasks here</p>
+              </div>
+            ) : (
+              inProgressFiltered.map((task) => (
+                <div
+                  key={task._id}
+                  className={`kanban-card ${
+                    draggedTaskId === task._id ? "is-dragging" : ""
+                  }`}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, task)}
+                  onDragEnd={handleDragEnd}
+                >
+                  <div className="card-top-row">
+                    <div className="card-top-left">
+                      <span className="drag-grip" title="Drag to reorder">
+                        <GripVertical size={13} />
+                      </span>
+                      <span
+                        className={`priority-badge prio-badge-${task.priority.toLowerCase()}`}
+                      >
+                        {getPriorityIcon(task.priority)}
+                        <span>{task.priority}</span>
+                      </span>
+                    </div>
+
+                    <div className="card-quick-actions">
+                      <button
+                        className="card-icon-action edit-btn"
+                        onClick={() => handleEdit(task)}
+                        title="Edit task"
+                      >
+                        <Pencil size={13} />
+                      </button>
+                      <button
+                        className="card-icon-action delete-btn"
+                        onClick={() => handleDelete(task._id)}
+                        title="Delete task"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="card-content">
+                    <h3>{task.title}</h3>
+                    {task.description && <p>{task.description}</p>}
+                  </div>
+
+                  <div className="card-footer">
+                    <span className="card-meta-date">
+                      <Calendar size={11} />
+                      <span>
+                        {new Date(task.createdAt || Date.now()).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                        })}
+                      </span>
+                    </span>
+
+                    <div className="move-buttons-group">
+                      <button
+                        className="move-pill-btn"
+                        onClick={() => handleStatusChange(task, "Pending")}
+                        title="Move back to Pending"
+                      >
+                        <ArrowLeft size={11} />
+                        <span>Back</span>
+                      </button>
+
+                      <button
+                        className="move-pill-btn move-done"
+                        onClick={() => handleStatusChange(task, "Completed")}
+                        title="Move to Completed"
+                      >
+                        <span>Done</span>
+                        <CheckCircle2 size={11} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+
+        {/* COLUMN 3: COMPLETED */}
+        <section
+          className={`kanban-column ${
+            dragOverCol === "Completed" ? "drag-over-completed" : ""
+          }`}
+          onDragOver={(e) => handleDragOver(e, "Completed")}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, "Completed")}
+        >
+          <div className="column-header">
+            <div className="column-header-title">
+              <span className="col-indicator-dot dot-completed"></span>
+              <h2>
+                <CheckCircle2 size={16} color="#34d399" />
+                <span>Completed</span>
+              </h2>
+              <span className="column-count-badge count-completed">
+                {completedFiltered.length}
+              </span>
+            </div>
+          </div>
+
+          <div className="column-body">
+            {completedFiltered.length === 0 ? (
+              <div className="empty-column-box">
+                <CheckCircle2 size={24} className="empty-col-icon" />
+                <span>No Completed Tasks</span>
+                <p>Drag finished tasks here</p>
+              </div>
+            ) : (
+              completedFiltered.map((task) => (
+                <div
+                  key={task._id}
+                  className={`kanban-card ${
+                    draggedTaskId === task._id ? "is-dragging" : ""
+                  }`}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, task)}
+                  onDragEnd={handleDragEnd}
+                >
+                  <div className="card-top-row">
+                    <div className="card-top-left">
+                      <span className="drag-grip" title="Drag to reorder">
+                        <GripVertical size={13} />
+                      </span>
+                      <span
+                        className={`priority-badge prio-badge-${task.priority.toLowerCase()}`}
+                      >
+                        {getPriorityIcon(task.priority)}
+                        <span>{task.priority}</span>
+                      </span>
+                    </div>
+
+                    <div className="card-quick-actions">
+                      <button
+                        className="card-icon-action edit-btn"
+                        onClick={() => handleEdit(task)}
+                        title="Edit task"
+                      >
+                        <Pencil size={13} />
+                      </button>
+                      <button
+                        className="card-icon-action delete-btn"
+                        onClick={() => handleDelete(task._id)}
+                        title="Delete task"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="card-content">
+                    <h3>{task.title}</h3>
+                    {task.description && <p>{task.description}</p>}
+                  </div>
+
+                  <div className="card-footer">
+                    <span className="card-meta-date">
+                      <Calendar size={11} />
+                      <span>
+                        {new Date(task.createdAt || Date.now()).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                        })}
+                      </span>
+                    </span>
+
+                    <div className="move-buttons-group">
+                      <button
+                        className="move-pill-btn"
+                        onClick={() => handleStatusChange(task, "In Progress")}
+                        title="Reopen task to In Progress"
+                      >
+                        <RotateCcw size={11} />
+                        <span>Reopen</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+      </main>
+
+      {/* =====================================================
+         TASK CREATION / EDITING MODAL
+      ===================================================== */}
+      {isModalOpen && (
+        <div className="modal-backdrop" onClick={closeModal}>
+          <div
+            className="task-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <div>
+                <span className="card-eyebrow">
+                  {editingId ? "UPDATE CARD" : "NEW KANBAN CARD"}
+                </span>
+                <h2>{editingId ? "Edit Task" : "Create Task"}</h2>
+              </div>
+              <button
+                className="modal-close-btn"
+                onClick={closeModal}
+                title="Close modal"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="task-form">
+              <div className="input-group">
+                <label htmlFor="modal-task-title">
+                  <Tag size={13} />
+                  <span>Task Title</span>
+                </label>
+                <input
+                  id="modal-task-title"
+                  type="text"
+                  placeholder="e.g. Build authentication middleware..."
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  autoFocus
+                  required
+                />
+              </div>
+
+              <div className="input-group">
+                <label htmlFor="modal-task-desc">
+                  <AlignLeft size={13} />
+                  <span>Description</span>
+                </label>
+                <textarea
+                  id="modal-task-desc"
+                  rows="3"
+                  placeholder="Add notes, requirements, or links..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+
+              <div className="input-group">
+                <label>
+                  <Sliders size={13} />
+                  <span>Workflow Stage</span>
+                </label>
+                <div className="status-selector">
+                  <button
+                    type="button"
+                    className={`status-option pending-option ${
+                      status === "Pending" ? "active" : ""
+                    }`}
+                    onClick={() => setStatus("Pending")}
+                  >
+                    <Clock size={14} />
+                    <span>Pending</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`status-option progress-option ${
+                      status === "In Progress" ? "active" : ""
+                    }`}
+                    onClick={() => setStatus("In Progress")}
+                  >
+                    <Zap size={14} />
+                    <span>In Progress</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`status-option completed-option ${
+                      status === "Completed" ? "active" : ""
+                    }`}
+                    onClick={() => setStatus("Completed")}
+                  >
+                    <CheckCircle2 size={14} />
+                    <span>Completed</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="input-group">
+                <label>
+                  <Flag size={13} />
+                  <span>Priority Level</span>
+                </label>
+                <div className="priority-selector">
+                  <button
+                    type="button"
+                    className={`priority-option prio-high ${
+                      priority === "High" ? "active" : ""
+                    }`}
+                    onClick={() => setPriority("High")}
+                  >
+                    <Flame size={14} />
+                    <span>High</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`priority-option prio-medium ${
+                      priority === "Medium" ? "active" : ""
+                    }`}
+                    onClick={() => setPriority("Medium")}
+                  >
+                    <AlertTriangle size={14} />
+                    <span>Medium</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`priority-option prio-low ${
+                      priority === "Low" ? "active" : ""
+                    }`}
+                    onClick={() => setPriority("Low")}
+                  >
+                    <ArrowDownCircle size={14} />
+                    <span>Low</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="modal-form-actions">
+                <button
+                  type="button"
+                  className="cancel-task-btn"
+                  onClick={closeModal}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="primary-task-btn"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 size={15} className="spin-icon" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      {editingId ? <Pencil size={15} /> : <Plus size={15} />}
+                      <span>{editingId ? "Update Task" : "Add to Board"}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
 
-      {/* ESSENTIAL STATS CARDS */}
-      <div className="task-stats">
-        <div className="stat-card">
-          <div className="stat-icon total-icon">
-            <ListTodo size={18} />
-          </div>
-          <div className="stat-details">
-            <span className="stat-label">Total Tasks</span>
-            <strong>{totalTasks}</strong>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon pending-icon">
-            <Clock size={18} />
-          </div>
-          <div className="stat-details">
-            <span className="stat-label">Pending</span>
-            <strong>{pendingTasks}</strong>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon progress-icon">
-            <Zap size={18} />
-          </div>
-          <div className="stat-details">
-            <span className="stat-label">In Progress</span>
-            <strong>{inProgressTasks}</strong>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon completed-icon">
-            <CheckSquare size={18} />
-          </div>
-          <div className="stat-details">
-            <span className="stat-label">Completed</span>
-            <strong>{completedTasks}</strong>
-          </div>
-        </div>
-      </div>
-
-      {/* MAIN GRID */}
-      <div className="task-main-grid">
-        {/* CREATE / EDIT TASK FORM CARD */}
-        <div className="task-form-card">
-          <div className="card-header">
-            <div className="header-title-group">
-              <span className="card-eyebrow">
-                {editingId ? "EDIT TASK" : "CREATE NEW"}
-              </span>
-              <h2>{editingId ? "Update Task Details" : "Create a New Task"}</h2>
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmit} className="task-form">
-            {/* TITLE */}
-            <div className="input-group">
-              <label htmlFor="task-title">
-                <Tag size={13} />
-                <span>Task Title</span>
-              </label>
-              <input
-                id="task-title"
-                type="text"
-                placeholder="e.g. Build backend API endpoints..."
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-              />
-            </div>
-
-            {/* DESCRIPTION */}
-            <div className="input-group">
-              <label htmlFor="task-desc">
-                <AlignLeft size={13} />
-                <span>Description</span>
-              </label>
-              <textarea
-                id="task-desc"
-                rows="3"
-                placeholder="Add detailed task instructions, links, or notes..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </div>
-
-            {/* TASK STATUS */}
-            <div className="input-group">
-              <label>
-                <Sliders size={13} />
-                <span>Task Status</span>
-              </label>
-              <div className="status-selector">
-                <button
-                  type="button"
-                  className={`status-option pending-option ${
-                    status === "Pending" ? "active" : ""
-                  }`}
-                  onClick={() => setStatus("Pending")}
-                >
-                  <Clock size={14} />
-                  <span>Pending</span>
-                </button>
-
-                <button
-                  type="button"
-                  className={`status-option progress-option ${
-                    status === "In Progress" ? "active" : ""
-                  }`}
-                  onClick={() => setStatus("In Progress")}
-                >
-                  <Zap size={14} />
-                  <span>In Progress</span>
-                </button>
-
-                <button
-                  type="button"
-                  className={`status-option completed-option ${
-                    status === "Completed" ? "active" : ""
-                  }`}
-                  onClick={() => setStatus("Completed")}
-                >
-                  <CheckCircle2 size={14} />
-                  <span>Completed</span>
-                </button>
+      {/* =====================================================
+         ADMIN REPORT GENERATOR MODAL (ADMIN ONLY)
+      ===================================================== */}
+      {isReportModalOpen && (
+        <div className="modal-backdrop" onClick={() => setIsReportModalOpen(false)}>
+          <div
+            className="task-modal"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: "760px",
+              maxHeight: "88vh",
+              overflowY: "auto",
+            }}
+          >
+            <div className="modal-header">
+              <div>
+                <span className="card-eyebrow" style={{ color: "#c084fc" }}>
+                  ADMINISTRATOR TOOLKIT
+                </span>
+                <h2>Task Activity & Performance Report</h2>
               </div>
-            </div>
-
-            {/* TASK PRIORITY */}
-            <div className="input-group">
-              <label>
-                <Flag size={13} />
-                <span>Priority Level</span>
-              </label>
-              <div className="priority-selector">
-                <button
-                  type="button"
-                  className={`priority-option prio-high ${
-                    priority === "High" ? "active" : ""
-                  }`}
-                  onClick={() => setPriority("High")}
-                >
-                  <Flame size={14} />
-                  <span>High</span>
-                </button>
-
-                <button
-                  type="button"
-                  className={`priority-option prio-medium ${
-                    priority === "Medium" ? "active" : ""
-                  }`}
-                  onClick={() => setPriority("Medium")}
-                >
-                  <AlertTriangle size={14} />
-                  <span>Medium</span>
-                </button>
-
-                <button
-                  type="button"
-                  className={`priority-option prio-low ${
-                    priority === "Low" ? "active" : ""
-                  }`}
-                  onClick={() => setPriority("Low")}
-                >
-                  <ArrowDownCircle size={14} />
-                  <span>Low</span>
-                </button>
-              </div>
-            </div>
-
-            {/* ACTION BUTTONS */}
-            <div className="form-actions">
               <button
-                type="submit"
-                className="primary-task-btn"
-                disabled={loading}
+                className="modal-close-btn"
+                onClick={() => setIsReportModalOpen(false)}
+                title="Close report modal"
               >
-                {loading ? (
-                  <>
-                    <Loader2 size={15} className="spin-icon" />
-                    <span>Processing...</span>
-                  </>
-                ) : (
-                  <>
-                    {editingId ? <Pencil size={15} /> : <Plus size={15} />}
-                    <span>{editingId ? "Update Task" : "Add Task"}</span>
-                  </>
-                )}
+                <X size={16} />
               </button>
-
-              {editingId && (
-                <button
-                  type="button"
-                  className="cancel-task-btn"
-                  onClick={handleCancelEdit}
-                >
-                  <X size={14} />
-                  <span>Cancel</span>
-                </button>
-              )}
-            </div>
-          </form>
-
-          {/* FORM FOOTER */}
-          <div className="form-footer">
-            <Database size={13} className="footer-db-icon" />
-            <span>Changes are automatically saved to MongoDB</span>
-          </div>
-        </div>
-
-        {/* YOUR TASKS LIST CARD */}
-        <div className="task-list-card">
-          <div className="list-header">
-            <div>
-              <span className="card-eyebrow">YOUR WORK</span>
-              <div className="work-title-row">
-                <h2>Your Tasks</h2>
-                <span className="task-count-badge">{totalTasks} Total</span>
-              </div>
             </div>
 
-            <button
-              className="refresh-btn"
-              onClick={loadTasks}
-              disabled={loadingTasks}
-              title="Refresh task list"
-              aria-label="Refresh tasks"
+            {/* Date Range Selection & Action Bar Controls */}
+            <div
+              style={{
+                background: "rgba(0, 0, 0, 0.25)",
+                border: "1px solid var(--task-border)",
+                borderRadius: "14px",
+                padding: "16px 18px",
+                marginBottom: "20px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "14px",
+              }}
             >
-              <RefreshCw
-                size={15}
-                className={loadingTasks ? "spin-icon" : ""}
-              />
-            </button>
-          </div>
+              {/* Row 1: Start Date, End Date, and Quick Presets */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-end",
+                  gap: "14px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div style={{ flex: 1, minWidth: "150px" }}>
+                  <label
+                    style={{
+                      fontSize: "11px",
+                      fontWeight: "700",
+                      letterSpacing: "0.05em",
+                      color: "var(--task-muted)",
+                      display: "block",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    START DATE
+                  </label>
+                  <input
+                    type="date"
+                    value={reportStartDate}
+                    onChange={(e) => setReportStartDate(e.target.value)}
+                    style={{
+                      width: "100%",
+                      boxSizing: "border-box",
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      border: "1px solid var(--task-border)",
+                      background: "rgba(0, 0, 0, 0.4)",
+                      color: "var(--task-text)",
+                      fontSize: "13px",
+                      outline: "none",
+                    }}
+                  />
+                </div>
 
-          {/* FILTER TABS */}
-          <div className="controls-bar">
-            <div className="filter-rows">
-              {/* STATUS FILTERS */}
-              <div className="task-filters">
-                {[
-                  { label: "All", count: totalTasks, icon: Layers, cls: "filter-all" },
-                  { label: "Pending", count: pendingTasks, icon: Clock, cls: "filter-pending" },
-                  { label: "In Progress", count: inProgressTasks, icon: Zap, cls: "filter-progress" },
-                  { label: "Completed", count: completedTasks, icon: CheckCircle2, cls: "filter-completed" },
-                ].map(({ label, count, icon: FilterIcon, cls }) => (
+                <div style={{ flex: 1, minWidth: "150px" }}>
+                  <label
+                    style={{
+                      fontSize: "11px",
+                      fontWeight: "700",
+                      letterSpacing: "0.05em",
+                      color: "var(--task-muted)",
+                      display: "block",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    END DATE
+                  </label>
+                  <input
+                    type="date"
+                    value={reportEndDate}
+                    onChange={(e) => setReportEndDate(e.target.value)}
+                    style={{
+                      width: "100%",
+                      boxSizing: "border-box",
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      border: "1px solid var(--task-border)",
+                      background: "rgba(0, 0, 0, 0.4)",
+                      color: "var(--task-text)",
+                      fontSize: "13px",
+                      outline: "none",
+                    }}
+                  />
+                </div>
+
+                {/* Quick Date Presets */}
+                <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
                   <button
-                    key={label}
-                    className={`filter-btn ${filter === label ? `active ${cls}` : ""}`}
-                    onClick={() => setFilter(label)}
+                    type="button"
+                    onClick={() => {
+                      const d = new Date();
+                      d.setDate(d.getDate() - 7);
+                      setReportStartDate(d.toISOString().split("T")[0]);
+                      setReportEndDate(new Date().toISOString().split("T")[0]);
+                    }}
+                    style={{
+                      padding: "7px 11px",
+                      borderRadius: "6px",
+                      border: "1px solid var(--task-border)",
+                      background: "rgba(255, 255, 255, 0.05)",
+                      color: "var(--task-muted)",
+                      fontSize: "11px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
                   >
-                    <FilterIcon size={12} />
-                    <span>{label}</span>
-                    <span className="filter-count">{count}</span>
+                    7 Days
                   </button>
-                ))}
-              </div>
-
-              {/* PRIORITY FILTERS */}
-              <div className="priority-filters">
-                <span className="priority-filter-label">PRIORITY:</span>
-                {[
-                  { label: "All", cls: "prio-all" },
-                  { label: "High", cls: "prio-high" },
-                  { label: "Medium", cls: "prio-medium" },
-                  { label: "Low", cls: "prio-low" },
-                ].map(({ label, cls }) => (
                   <button
-                    key={label}
-                    className={`prio-filter-btn ${
-                      priorityFilter === label ? `active ${cls}` : ""
-                    }`}
-                    onClick={() => setPriorityFilter(label)}
+                    type="button"
+                    onClick={() => {
+                      const d = new Date();
+                      d.setDate(d.getDate() - 30);
+                      setReportStartDate(d.toISOString().split("T")[0]);
+                      setReportEndDate(new Date().toISOString().split("T")[0]);
+                    }}
+                    style={{
+                      padding: "7px 11px",
+                      borderRadius: "6px",
+                      border: "1px solid var(--task-border)",
+                      background: "rgba(255, 255, 255, 0.05)",
+                      color: "var(--task-muted)",
+                      fontSize: "11px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
                   >
-                    <span>{label}</span>
+                    30 Days
                   </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* LOADING STATE */}
-          {loadingTasks && (
-            <div className="task-loading">
-              <Loader2 size={32} className="loading-spinner" />
-              <h3>Loading your tasks</h3>
-              <p>Fetching the latest task status from MongoDB...</p>
-            </div>
-          )}
-
-          {/* EMPTY STATE */}
-          {!loadingTasks && filteredTasks.length === 0 && (
-            <div className="empty-tasks">
-              <div className="empty-task-icon">
-                <ClipboardCheck size={26} />
-              </div>
-              <h3>No tasks found</h3>
-              <p>
-                {filter !== "All" || priorityFilter !== "All"
-                  ? "No tasks match selected filter criteria."
-                  : "You don't have any tasks yet. Create one on the left!"}
-              </p>
-            </div>
-          )}
-
-          {/* TASK ITEMS LIST */}
-          {!loadingTasks && filteredTasks.length > 0 && (
-            <div className="task-items">
-              {filteredTasks.map((task) => {
-                const statusClass = task.status.toLowerCase().replace(" ", "-");
-                const prioClass = task.priority.toLowerCase();
-
-                return (
-                  <article
-                    className={`task-item ${
-                      task.status === "Completed" ? "task-completed" : ""
-                    }`}
-                    key={task._id}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const year = new Date().getFullYear();
+                      setReportStartDate(`${year}-01-01`);
+                      setReportEndDate(new Date().toISOString().split("T")[0]);
+                    }}
+                    style={{
+                      padding: "7px 11px",
+                      borderRadius: "6px",
+                      border: "1px solid var(--task-border)",
+                      background: "rgba(255, 255, 255, 0.05)",
+                      color: "var(--task-muted)",
+                      fontSize: "11px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
                   >
-                    {/* STATUS BUTTON TOGGLE */}
-                    <button
-                      className={`task-check status-${statusClass}`}
-                      onClick={() =>
-                        handleStatusChange(
-                          task,
-                          task.status === "Completed" ? "Pending" : "Completed"
-                        )
-                      }
-                      title={`Current: ${task.status}. Click to toggle.`}
-                    >
-                      {getStatusIcon(task.status)}
-                    </button>
+                    This Year
+                  </button>
+                </div>
+              </div>
 
-                    {/* TASK INFORMATION */}
-                    <div className="task-info">
-                      <div className="task-title-row">
-                        <h3>{task.title}</h3>
-                        <div className="task-badges">
-                          {/* PRIORITY BADGE */}
-                          <span
-                            className={`priority-badge prio-badge-${prioClass}`}
-                            title={`Priority: ${task.priority}`}
-                          >
-                            {getPriorityIcon(task.priority)}
-                            <span>{task.priority}</span>
-                          </span>
+              {/* Row 2: Proper Alignment Action Buttons */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  borderTop: "1px solid rgba(255, 255, 255, 0.06)",
+                  paddingTop: "12px",
+                  gap: "12px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "12px",
+                    color: "var(--task-muted)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  <Calendar size={13} color="#818cf8" />
+                  <span>
+                    Auditing <strong>{reportStartDate}</strong> to <strong>{reportEndDate}</strong>
+                  </span>
+                </div>
 
-                          {/* STATUS BADGE */}
-                          <span
-                            className={`task-status status-badge-${statusClass}`}
-                          >
-                            {getStatusIcon(task.status)}
-                            <span>{task.status}</span>
-                          </span>
-                        </div>
-                      </div>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                  {/* GENERATE PDF BUTTON */}
+                  <button
+                    type="button"
+                    onClick={handleGeneratePdfReport}
+                    disabled={reportLoading}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "7px",
+                      height: "38px",
+                      padding: "0 18px",
+                      borderRadius: "8px",
+                      border: "none",
+                      background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                      color: "#ffffff",
+                      fontSize: "13px",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                      boxShadow: "0 4px 14px rgba(99, 102, 241, 0.4)",
+                      transition: "all 0.2s ease",
+                    }}
+                    title="Generate and download professional executive PDF report"
+                  >
+                    {reportLoading ? (
+                      <Loader2 size={15} className="spin-icon" />
+                    ) : (
+                      <FileText size={15} />
+                    )}
+                    <span>Generate PDF</span>
+                  </button>
 
-                      <p>{task.description || "No description provided."}</p>
+                  {/* EXPORT CSV BUTTON */}
+                  <button
+                    type="button"
+                    onClick={handleDownloadReportCsv}
+                    disabled={reportLoading}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "7px",
+                      height: "38px",
+                      padding: "0 18px",
+                      borderRadius: "8px",
+                      border: "1px solid rgba(16, 185, 129, 0.35)",
+                      background: "rgba(16, 185, 129, 0.15)",
+                      color: "#34d399",
+                      fontSize: "13px",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                    title="Export task data as CSV spreadsheet"
+                  >
+                    <Download size={15} />
+                    <span>Export CSV</span>
+                  </button>
+                </div>
+              </div>
+            </div>
 
-                      {task.createdAt && (
-                        <div className="task-meta">
-                          <Calendar size={11} />
-                          <span>
-                            Created{" "}
-                            {new Date(task.createdAt).toLocaleDateString(
-                              "en-IN",
-                              {
+            {/* Generated Report Success Banner */}
+            {lastGeneratedFile && (
+              <div
+                style={{
+                  padding: "10px 14px",
+                  borderRadius: "10px",
+                  background: "rgba(16, 185, 129, 0.12)",
+                  border: "1px solid rgba(16, 185, 129, 0.35)",
+                  color: "#34d399",
+                  fontSize: "13px",
+                  marginBottom: "16px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "10px",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <CheckCircle2 size={16} />
+                  <span>
+                    Report generated & downloaded: <strong>{lastGeneratedFile}</strong>
+                  </span>
+                </div>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    type="button"
+                    onClick={handlePrintPdfReport}
+                    style={{
+                      background: "rgba(139, 92, 246, 0.2)",
+                      border: "1px solid rgba(139, 92, 246, 0.4)",
+                      color: "#c084fc",
+                      borderRadius: "6px",
+                      padding: "4px 8px",
+                      fontSize: "11px",
+                      cursor: "pointer",
+                      fontWeight: "600",
+                    }}
+                  >
+                    Save as PDF
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDownloadReportCsv}
+                    style={{
+                      background: "rgba(16, 185, 129, 0.2)",
+                      border: "1px solid rgba(16, 185, 129, 0.4)",
+                      color: "#ffffff",
+                      borderRadius: "6px",
+                      padding: "4px 8px",
+                      fontSize: "11px",
+                      cursor: "pointer",
+                      fontWeight: "600",
+                    }}
+                  >
+                    Download CSV
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Error Message */}
+            {reportError && (
+              <div
+                style={{
+                  padding: "12px 14px",
+                  borderRadius: "10px",
+                  background: "rgba(239, 68, 68, 0.12)",
+                  border: "1px solid rgba(239, 68, 68, 0.3)",
+                  color: "#f87171",
+                  fontSize: "13px",
+                  marginBottom: "16px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <ShieldAlert size={16} />
+                <span>{reportError}</span>
+              </div>
+            )}
+
+            {/* Report Statistics Cards */}
+            {reportData && (
+              <div>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, 1fr)",
+                    gap: "10px",
+                    marginBottom: "16px",
+                  }}
+                >
+                  <div
+                    style={{
+                      background: "rgba(99, 102, 241, 0.12)",
+                      border: "1px solid rgba(99, 102, 241, 0.25)",
+                      borderRadius: "10px",
+                      padding: "12px",
+                      textAlign: "center",
+                    }}
+                  >
+                    <span style={{ fontSize: "11px", color: "#a5b4fc", display: "block" }}>
+                      TOTAL CREATED
+                    </span>
+                    <strong style={{ fontSize: "20px", color: "#ffffff" }}>
+                      {reportData.metrics?.totalTasks || 0}
+                    </strong>
+                  </div>
+
+                  <div
+                    style={{
+                      background: "rgba(16, 185, 129, 0.12)",
+                      border: "1px solid rgba(16, 185, 129, 0.25)",
+                      borderRadius: "10px",
+                      padding: "12px",
+                      textAlign: "center",
+                    }}
+                  >
+                    <span style={{ fontSize: "11px", color: "#34d399", display: "block" }}>
+                      COMPLETED
+                    </span>
+                    <strong style={{ fontSize: "20px", color: "#ffffff" }}>
+                      {reportData.metrics?.completedTasks || 0}
+                    </strong>
+                  </div>
+
+                  <div
+                    style={{
+                      background: "rgba(6, 182, 212, 0.12)",
+                      border: "1px solid rgba(6, 182, 212, 0.25)",
+                      borderRadius: "10px",
+                      padding: "12px",
+                      textAlign: "center",
+                    }}
+                  >
+                    <span style={{ fontSize: "11px", color: "#38bdf8", display: "block" }}>
+                      IN PROGRESS
+                    </span>
+                    <strong style={{ fontSize: "20px", color: "#ffffff" }}>
+                      {reportData.metrics?.inProgressTasks || 0}
+                    </strong>
+                  </div>
+
+                  <div
+                    style={{
+                      background: "rgba(139, 92, 246, 0.12)",
+                      border: "1px solid rgba(139, 92, 246, 0.25)",
+                      borderRadius: "10px",
+                      padding: "12px",
+                      textAlign: "center",
+                    }}
+                  >
+                    <span style={{ fontSize: "11px", color: "#c084fc", display: "block" }}>
+                      COMPLETION RATE
+                    </span>
+                    <strong style={{ fontSize: "20px", color: "#ffffff" }}>
+                      {reportData.metrics?.completionRate || "0%"}
+                    </strong>
+                  </div>
+                </div>
+
+                {/* Priority Breakdown */}
+                <div
+                  style={{
+                    background: "rgba(0, 0, 0, 0.2)",
+                    border: "1px solid var(--task-border)",
+                    borderRadius: "10px",
+                    padding: "12px 14px",
+                    marginBottom: "16px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    fontSize: "12px",
+                  }}
+                >
+                  <span style={{ color: "var(--task-muted)" }}>Priority Distribution:</span>
+                  <div style={{ display: "flex", gap: "12px" }}>
+                    <span style={{ color: "#f87171" }}>
+                      🔥 High: <strong>{reportData.metrics?.byPriority?.high || 0}</strong>
+                    </span>
+                    <span style={{ color: "#c084fc" }}>
+                      ⚡ Medium: <strong>{reportData.metrics?.byPriority?.medium || 0}</strong>
+                    </span>
+                    <span style={{ color: "#2dd4bf" }}>
+                      ↓ Low: <strong>{reportData.metrics?.byPriority?.low || 0}</strong>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Tasks List Table in Date Range */}
+                <div style={{ maxHeight: "240px", overflowY: "auto", border: "1px solid var(--task-border)", borderRadius: "10px" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px", textAlign: "left" }}>
+                    <thead>
+                      <tr style={{ background: "rgba(0, 0, 0, 0.4)", borderBottom: "1px solid var(--task-border)" }}>
+                        <th style={{ padding: "8px 12px", color: "var(--task-muted)" }}>Title</th>
+                        <th style={{ padding: "8px 12px", color: "var(--task-muted)" }}>Status</th>
+                        <th style={{ padding: "8px 12px", color: "var(--task-muted)" }}>Priority</th>
+                        <th style={{ padding: "8px 12px", color: "var(--task-muted)" }}>Created Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(reportData.tasks || []).length === 0 ? (
+                        <tr>
+                          <td colSpan={4} style={{ padding: "18px", textAlign: "center", color: "var(--task-muted)" }}>
+                            No tasks found in the specified date range.
+                          </td>
+                        </tr>
+                      ) : (
+                        (reportData.tasks || []).map((t) => (
+                          <tr key={t._id} style={{ borderBottom: "1px solid var(--task-border)" }}>
+                            <td style={{ padding: "8px 12px", color: "var(--task-text)", fontWeight: "600" }}>
+                              {t.title}
+                            </td>
+                            <td style={{ padding: "8px 12px" }}>
+                              <span style={{ color: t.status === "Completed" ? "#34d399" : t.status === "In Progress" ? "#38bdf8" : "#a5b4fc" }}>
+                                {t.status || "Pending"}
+                              </span>
+                            </td>
+                            <td style={{ padding: "8px 12px" }}>
+                              <span style={{ color: t.priority === "High" ? "#f87171" : t.priority === "Low" ? "#2dd4bf" : "#c084fc" }}>
+                                {t.priority || "Medium"}
+                              </span>
+                            </td>
+                            <td style={{ padding: "8px 12px", color: "var(--task-muted)" }}>
+                              {new Date(t.createdAt).toLocaleDateString("en-IN", {
                                 day: "numeric",
                                 month: "short",
                                 year: "numeric",
-                              }
-                            )}
-                          </span>
-                        </div>
+                              })}
+                            </td>
+                          </tr>
+                        ))
                       )}
-                    </div>
-
-                    {/* ACTIONS */}
-                    <div className="task-actions">
-                      <button
-                        className="task-action edit-action"
-                        onClick={() => handleEdit(task)}
-                        title="Edit task"
-                        aria-label="Edit task"
-                      >
-                        <Pencil size={14} />
-                      </button>
-
-                      <button
-                        className="task-action delete-action"
-                        onClick={() => handleDelete(task._id)}
-                        title="Delete task"
-                        aria-label="Delete task"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

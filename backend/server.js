@@ -62,7 +62,7 @@ mongoose
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Practical 7 Task Management API with JWT Authentication is running",
+    message: "Practical 7-9 Task Management API with JWT Authentication & In-Memory Caching (node-cache) is running",
     endpoints: {
       auth: {
         register: "POST /api/auth/register",
@@ -70,23 +70,30 @@ app.get("/", (req, res) => {
         me: "GET /api/auth/me (Protected)",
       },
       tasks: {
-        getAll: "GET /api/tasks (Protected)",
-        getOne: "GET /api/tasks/:id (Protected)",
-        create: "POST /api/tasks (Protected + Validated)",
-        update: "PUT /api/tasks/:id (Protected + Validated)",
-        delete: "DELETE /api/tasks/:id (Protected)",
+        getAll: "GET /api/tasks (Protected, In-Memory Cached)",
+        getOne: "GET /api/tasks/:id (Protected, In-Memory Cached)",
+        create: "POST /api/tasks (Protected + Validated, Invalidates Cache)",
+        update: "PUT /api/tasks/:id (Protected + Validated, Invalidates Cache)",
+        delete: "DELETE /api/tasks/:id (Protected, Invalidates Cache)",
+        cacheStats: "GET /api/tasks/cache/stats (Public Debug Endpoint)",
+        cacheClear: "POST /api/tasks/cache/clear (Public Debug Endpoint)",
       },
     },
   });
 });
 
-// Authentication Routes (Register, Login, /me)
+// Authentication Routes (Register, Login, /me, forgot/reset password)
 app.use("/api/auth", authRoutes);
 app.use("/auth", authRoutes); // Fallback alias
 
 // Protected Task Management Routes (CRUD with Auth & Validation Middlewares)
 app.use("/api/tasks", taskRoutes);
 app.use("/tasks", taskRoutes); // Fallback alias for Practical 6 compatibility
+
+// Admin-Only Report Generation Routes (Date range query & CSV export)
+const reportRoutes = require("./routes/reportRoutes");
+app.use("/api/reports", reportRoutes);
+app.use("/reports", reportRoutes); // Fallback alias
 
 // =============================================================================
 // 4. 404 NOT FOUND HANDLER

@@ -1,16 +1,50 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 
-// Import Components
+// Import Persistent Components
 import Navbar from './components/Navbar';
-import About from './components/About';
-import Skills from './components/Skills';
-import Home from './pages/Home';
-import Projects from './pages/Projects';
-import Contact from './pages/Contact';
-import NotFound from './pages/NotFound';
+
+// Direct Import for Task route (eliminates secondary waterfall on /task)
 import TaskManager from './pages/TaskManager';
-import Auth from './pages/Auth';
+
+// Lazy-Loaded Route Components for Practical 8 Code Splitting
+const Home = lazy(() => import('./pages/Home'));
+const About = lazy(() => import('./components/About'));
+const Skills = lazy(() => import('./components/Skills'));
+const Projects = lazy(() => import('./pages/Projects'));
+const Contact = lazy(() => import('./pages/Contact'));
+const Auth = lazy(() => import('./pages/Auth'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+
+// Fast fallback placeholder to prevent Cumulative Layout Shift (CLS)
+const PageLoadingFallback = () => (
+  <div
+    className="route-padding-wrapper"
+    style={{
+      minHeight: '60vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: 'var(--text-muted)',
+      fontFamily: "'Outfit', sans-serif",
+      fontSize: '14px',
+    }}
+  >
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div
+        style={{
+          width: '18px',
+          height: '18px',
+          border: '2px solid rgba(99, 102, 241, 0.2)',
+          borderTopColor: '#6366f1',
+          borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite',
+        }}
+      />
+      <span>Loading...</span>
+    </div>
+  </div>
+);
 
 function App() {
   const { pathname } = useLocation();
@@ -68,29 +102,13 @@ function App() {
   };
 
   return (
-    <>
-      <style>{`
-        .app-container {
-          display: flex;
-          flex-direction: column;
-          min-height: 100vh;
-        }
+    <div className="app-container">
+      {/* Sticky Top Navigation Bar with Theme Toggler */}
+      <Navbar theme={theme} toggleTheme={toggleTheme} />
 
-        .main-content {
-          flex: 1 0 auto;
-        }
-
-        /* Routing page wrappers */
-        .route-padding-wrapper {
-          padding-top: 70px;
-        }
-      `}</style>
-      <div className="app-container">
-        {/* Sticky Top Navigation Bar with Theme Toggler */}
-        <Navbar theme={theme} toggleTheme={toggleTheme} />
-
-        {/* Multi-Page Routes container */}
-        <main className="main-content">
+      {/* Multi-Page Routes container with Suspense Code Splitting */}
+      <main className="main-content">
+        <Suspense fallback={<PageLoadingFallback />}>
           <Routes>
             <Route path="/" element={<Home studentData={studentData} />} />
             <Route path="/about" element={<div className="route-padding-wrapper"><About /></div>} />
@@ -100,12 +118,14 @@ function App() {
             <Route path="/task" element={<div className="route-padding-wrapper"><TaskManager /></div>} />
             <Route path="/login" element={<div className="route-padding-wrapper"><Auth initialMode="login" /></div>} />
             <Route path="/register" element={<div className="route-padding-wrapper"><Auth initialMode="register" /></div>} />
+            <Route path="/forgot-password" element={<div className="route-padding-wrapper"><Auth initialMode="forgot" /></div>} />
+            <Route path="/reset-password" element={<div className="route-padding-wrapper"><Auth initialMode="reset" /></div>} />
             <Route path="/auth" element={<div className="route-padding-wrapper"><Auth initialMode="login" /></div>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </main>
-      </div>
-    </>
+        </Suspense>
+      </main>
+    </div>
   );
 }
 
