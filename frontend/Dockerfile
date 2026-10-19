@@ -4,8 +4,8 @@
 # Stage 2: Production Serving Stage (Lightweight multi-stage runner)
 # =============================================================================
 
-# Stage 1: Build the React Application
-FROM node:18-alpine AS build
+# Stage 1: Build the React Application (Node 20+ LTS required for Vite 8)
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
@@ -22,7 +22,7 @@ RUN npm run build
 # =============================================================================
 # Stage 2: Production Serving Stage (Multi-stage build to reduce final image size)
 # =============================================================================
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 
 WORKDIR /app
 

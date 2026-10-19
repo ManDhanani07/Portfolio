@@ -3,8 +3,8 @@
 # Containerizes the Node.js / Express Task Management API
 # =============================================================================
 
-# Base Image: Lightweight Node 18 Alpine runtime
-FROM node:18-alpine
+# Base Image: Lightweight Node 20 Alpine runtime
+FROM node:20-alpine
 
 # Set working directory inside container
 WORKDIR /app
