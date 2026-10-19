@@ -1,0 +1,13 @@
+# Practical 11: Frontend .dockerignore
+# Exclude node_modules, build artifacts, and local environments
+node_modules
+dist
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+.env.*
+.git
+.gitignore
+.vscode
+.idea

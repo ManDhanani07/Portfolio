@@ -1,0 +1,72 @@
+version: "3.8"
+
+# =============================================================================
+# Practical 11: Containerization with Docker and Docker Compose
+# Architecture:
+#   frontend (5173) ──► backend (5000) ──► mongodb (27017)
+#   Bridge Network: app-network
+#   Persistent Data: mongo-data named volume
+# =============================================================================
+
+services:
+  # 1. Database Service: MongoDB
+  mongodb:
+    image: mongo:6
+    container_name: task-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      # Supplementary Problem 3: Named volume for database persistence across restarts
+      - mongo-data:/data/db
+    networks:
+      - app-network
+
+  # 2. API Backend Service: Node.js / Express
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: task-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      # Uses Docker service name 'mongodb' instead of localhost
+      - MONGO_URI=mongodb://mongodb:27017/tasks
+      - JWT_SECRET=supersecret_jwt_key_practical_7_key_12345
+      - NODE_ENV=production
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+
+  # 3. Client Frontend Service: React + Vite (Multi-Stage Build)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: task-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      # Points client browser requests to the exposed backend host port
+      - VITE_API_URL=http://localhost:5000
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+# =============================================================================
+# Networks & Volumes Configuration
+# =============================================================================
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  # Supplementary Problem 3: Named volume definition
+  mongo-data:
+    driver: local

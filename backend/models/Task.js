@@ -26,6 +26,13 @@ const taskSchema = new mongoose.Schema(
       default: "Medium",
     },
 
+    // Assigned user for Practical 10 notifications & background events
+    assignedUser: {
+      type: String,
+      default: "Unassigned",
+      trim: true,
+    },
+
     // Keep completed for compatibility with your existing data
     completed: {
       type: Boolean,

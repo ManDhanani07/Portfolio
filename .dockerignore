@@ -1,0 +1,10 @@
+# Root .dockerignore for Practical 11
+node_modules
+*/node_modules
+dist
+*/dist
+.git
+.gitignore
+.env
+*/.env
+*.log

@@ -1,0 +1,13 @@
+# Practical 11: Backend .dockerignore
+# Exclude dependencies, logs, and sensitive environment variables from Docker build context
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+.env.*
+.git
+.gitignore
+.vscode
+.idea
+PRACTICAL_10_MANUAL.md

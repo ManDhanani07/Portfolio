@@ -4,6 +4,7 @@ const Task = require("../models/Task");
 const authMiddleware = require("../middleware/authMiddleware");
 const { validateTask } = require("../middleware/validationMiddleware");
 const cache = require("../utils/cache");
+const taskEvents = require("../events");
 
 const router = express.Router();
 
@@ -151,7 +152,7 @@ router.get("/:id", async (req, res) => {
 // =========================================================================
 router.post("/", validateTask, async (req, res) => {
   try {
-    const { title, description, status, priority, completed } = req.body;
+    const { title, description, status, priority, completed, assignedUser, simulateError } = req.body;
 
     const task = new Task({
       title: title.trim(),
@@ -159,6 +160,7 @@ router.post("/", validateTask, async (req, res) => {
       status: status || "Pending",
       priority: priority || "Medium",
       completed: status === "Completed" || Boolean(completed),
+      assignedUser: assignedUser ? assignedUser.trim() : (req.user?.email || "Unassigned"),
     });
 
     const savedTask = await task.save();
@@ -166,7 +168,28 @@ router.post("/", validateTask, async (req, res) => {
     // Cache Invalidation: invalidate 'all_tasks' so fresh list is queried next time
     cache.del(cache.KEYS.ALL_TASKS);
 
-    return res.status(201).json(savedTask);
+    // =========================================================================
+    // Practical 10: Event-Driven Asynchronous Processing
+    // Step 3: Emit event right after saving task, then respond immediately
+    // Demonstrate difference between synchronous response & async listener execution
+    // =========================================================================
+    const apiTimestamp = new Date().toISOString();
+    console.log(`[API] Response sent at ${apiTimestamp} (Status: 201 Created, Task: "${savedTask.title}")`);
+
+    // 1. Send HTTP 201 Response IMMEDIATELY to client (Non-blocking)
+    res.status(201).json(savedTask);
+
+    // 2. Emit 'task-created' event to background listeners
+    taskEvents.emit("task-created", {
+      _id: savedTask._id,
+      title: savedTask.title,
+      description: savedTask.description,
+      status: savedTask.status,
+      assignedUser: savedTask.assignedUser,
+      createdAt: savedTask.createdAt,
+      apiResponseTime: apiTimestamp,
+      simulateError: Boolean(simulateError),
+    });
   } catch (error) {
     console.error("POST /tasks Error:", error);
     return res.status(500).json({
@@ -255,10 +278,24 @@ router.delete("/:id", async (req, res) => {
     cache.del(cache.KEYS.ALL_TASKS);
     cache.del(cache.KEYS.taskKey(req.params.id));
 
-    return res.status(200).json({
+    // Practical 10: Emit 'task-deleted' event (Supplementary Problem 1)
+    const apiTimestamp = new Date().toISOString();
+    console.log(`[API] Response sent at ${apiTimestamp} (Status: 200 OK, Deleted Task ID: ${deletedTask._id})`);
+
+    // Return immediate response to caller
+    res.status(200).json({
       success: true,
       message: "Task deleted successfully",
       task: deletedTask,
+    });
+
+    // Emit 'task-deleted' event to background listeners
+    taskEvents.emit("task-deleted", {
+      _id: deletedTask._id,
+      title: deletedTask.title,
+      deletedBy: req.user?.email || "Admin User",
+      deletedAt: apiTimestamp,
+      apiResponseTime: apiTimestamp,
     });
   } catch (error) {
     console.error("DELETE /tasks/:id Error:", error);

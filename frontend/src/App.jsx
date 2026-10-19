@@ -4,19 +4,32 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 // Import Persistent Components
 import Navbar from './components/Navbar';
 
-// Direct Import for Task route (eliminates secondary waterfall on /task)
-import TaskManager from './pages/TaskManager';
+// =============================================================================
+// PRACTICAL 8: BEFORE OPTIMIZATION (Reference)
+// =============================================================================
+// In the unoptimized state, all routes are imported statically like this:
+// import Home from './pages/Home';
+// import About from './components/About';
+// import Skills from './components/Skills';
+// import Projects from './pages/Projects';
+// import Contact from './pages/Contact';
+// import TaskManager from './pages/TaskManager';
+// import Auth from './pages/Auth';
+// import NotFound from './pages/NotFound';
 
-// Lazy-Loaded Route Components for Practical 8 Code Splitting
+// =============================================================================
+// PRACTICAL 8: AFTER OPTIMIZATION (ACTIVE - Code Splitting via React.lazy)
+// =============================================================================
 const Home = lazy(() => import('./pages/Home'));
 const About = lazy(() => import('./components/About'));
 const Skills = lazy(() => import('./components/Skills'));
 const Projects = lazy(() => import('./pages/Projects'));
 const Contact = lazy(() => import('./pages/Contact'));
+const TaskManager = lazy(() => import('./pages/TaskManager'));
 const Auth = lazy(() => import('./pages/Auth'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
-// Fast fallback placeholder to prevent Cumulative Layout Shift (CLS)
+// Meaningful Fallback UI rendered by Suspense while route chunks load
 const PageLoadingFallback = () => (
   <div
     className="route-padding-wrapper"
@@ -27,21 +40,21 @@ const PageLoadingFallback = () => (
       justifyContent: 'center',
       color: 'var(--text-muted)',
       fontFamily: "'Outfit', sans-serif",
-      fontSize: '14px',
+      fontSize: '15px',
     }}
   >
-    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
       <div
         style={{
-          width: '18px',
-          height: '18px',
-          border: '2px solid rgba(99, 102, 241, 0.2)',
+          width: '28px',
+          height: '28px',
+          border: '3px solid rgba(99, 102, 241, 0.2)',
           borderTopColor: '#6366f1',
           borderRadius: '50%',
           animation: 'spin 0.8s linear infinite',
         }}
       />
-      <span>Loading...</span>
+      <span style={{ fontWeight: 500, letterSpacing: '0.3px' }}>Loading page chunk...</span>
     </div>
   </div>
 );

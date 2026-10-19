@@ -12,6 +12,9 @@ const cors = require("cors");
 const authRoutes = require("./routes/authRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 
+// Practical 10: Register Native EventEmitter Listeners
+require("./listeners");
+
 // Initialize Express App
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -62,7 +65,20 @@ mongoose
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Practical 7-9 Task Management API with JWT Authentication & In-Memory Caching (node-cache) is running",
+    message: "Practical 7-11 Task Management API (JWT Auth, Caching, EventEmitter & Docker Containerization) is running",
+    containerization: {
+      dockerized: Boolean(process.env.NODE_ENV === "production" || process.env.MONGO_URI?.includes("mongodb:")),
+      nodeEnv: process.env.NODE_ENV || "development",
+      mongoHost: MONGO_URI,
+    },
+    events: {
+      system: "Node.js Native EventEmitter (events.js)",
+      registeredEvents: [
+        "task-created (Logs async notification with 2s delay: task title, timestamp, assigned user)",
+        "task-deleted (Logs async deletion notification with 1s delay: task title, deletedBy, timestamp)",
+        "error (Captures and logs async handler failures without crashing server)"
+      ]
+    },
     endpoints: {
       auth: {
         register: "POST /api/auth/register",
@@ -72,9 +88,9 @@ app.get("/", (req, res) => {
       tasks: {
         getAll: "GET /api/tasks (Protected, In-Memory Cached)",
         getOne: "GET /api/tasks/:id (Protected, In-Memory Cached)",
-        create: "POST /api/tasks (Protected + Validated, Invalidates Cache)",
+        create: "POST /api/tasks (Protected + Validated, Invalidates Cache, Emits task-created)",
         update: "PUT /api/tasks/:id (Protected + Validated, Invalidates Cache)",
-        delete: "DELETE /api/tasks/:id (Protected, Invalidates Cache)",
+        delete: "DELETE /api/tasks/:id (Protected, Invalidates Cache, Emits task-deleted)",
         cacheStats: "GET /api/tasks/cache/stats (Public Debug Endpoint)",
         cacheClear: "POST /api/tasks/cache/clear (Public Debug Endpoint)",
       },
