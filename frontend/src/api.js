@@ -304,3 +304,24 @@ export const downloadAdminTaskReportCsv = async ({ startDate, endDate }) => {
   link.remove();
   window.URL.revokeObjectURL(downloadUrl);
 };
+
+// =========================================================================
+// PRACTICAL 13: AI API SERVICE INTEGRATION
+// =========================================================================
+
+/**
+ * Generate AI-powered task description and suggested priority
+ * POST /api/ai/generate-description
+ */
+export const generateAiDescription = async (title) => {
+  const response = await fetch(`${BASE_URL}/api/ai/generate-description`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
+    body: JSON.stringify({ title }),
+  });
+
+  return handleResponse(response);
+};

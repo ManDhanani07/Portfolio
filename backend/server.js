@@ -113,6 +113,11 @@ const reportRoutes = require("./routes/reportRoutes");
 app.use("/api/reports", reportRoutes);
 app.use("/reports", reportRoutes); // Fallback alias
 
+// Practical 13: AI API Integration Routes (OpenAI / Gemini)
+const aiRoutes = require("./routes/aiRoutes");
+app.use("/api/ai", aiRoutes);
+app.use("/ai", aiRoutes); // Fallback alias
+
 // =============================================================================
 // 4. 404 NOT FOUND HANDLER
 // =============================================================================

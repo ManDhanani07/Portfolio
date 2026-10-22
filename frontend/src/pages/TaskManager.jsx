@@ -10,6 +10,7 @@ import {
   logout,
   getAdminTaskReport,
   downloadAdminTaskReportCsv,
+  generateAiDescription,
 } from "../api";
 import {
   Plus,
@@ -69,6 +70,10 @@ function TaskManager() {
   const [loggedIn, setLoggedIn] = useState(() => isAuthenticated());
   const [draggedTaskId, setDraggedTaskId] = useState(null);
   const [dragOverCol, setDragOverCol] = useState(null);
+
+  // Practical 13: AI API Generator States
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiNotice, setAiNotice] = useState(null);
 
   // Admin Report Generator States
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
@@ -185,6 +190,7 @@ function TaskManager() {
     setDescription("");
     setStatus(defaultStatus);
     setPriority("Medium");
+    setAiNotice(null);
     setIsModalOpen(true);
   };
 
@@ -195,6 +201,46 @@ function TaskManager() {
     setDescription("");
     setStatus("Pending");
     setPriority("Medium");
+    setAiNotice(null);
+  };
+
+  // =========================================================================
+  // Practical 13: AI API Generator Handler (OpenAI / Gemini with Graceful Degradation)
+  // =========================================================================
+  const handleGenerateAiDescription = async () => {
+    if (!title || !title.trim()) {
+      showToast("error", "Please enter a task title first before generating AI description", "AI REQUIREMENT");
+      return;
+    }
+
+    try {
+      setAiLoading(true);
+      setAiNotice(null);
+
+      const result = await generateAiDescription(title.trim());
+
+      if (result && result.description) {
+        setDescription(result.description);
+        if (result.priority) {
+          setPriority(result.priority);
+        }
+        setAiNotice({
+          source: result.source || "AI Service",
+          fallback: Boolean(result.fallback),
+          disclaimer: result.disclaimer || "AI-generated suggestion. Please review before saving.",
+        });
+        showToast(
+          "success",
+          result.fallback ? "Smart fallback description generated" : "✨ AI description generated successfully",
+          "AI SUCCESS"
+        );
+      }
+    } catch (err) {
+      console.error("AI API Error:", err);
+      showToast("error", err.message || "Failed to generate AI description", "AI ERROR");
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   // POST / PUT Task Handler
@@ -263,6 +309,7 @@ function TaskManager() {
     setDescription(norm.description || "");
     setStatus(norm.status);
     setPriority(norm.priority);
+    setAiNotice(null);
     setIsModalOpen(true);
   };
 
@@ -1409,17 +1456,44 @@ function TaskManager() {
               </div>
 
               <div className="input-group">
-                <label htmlFor="modal-task-desc">
-                  <AlignLeft size={13} />
-                  <span>Description</span>
-                </label>
+                <div className="ai-desc-header">
+                  <label htmlFor="modal-task-desc" style={{ marginBottom: 0 }}>
+                    <AlignLeft size={13} />
+                    <span>Description</span>
+                  </label>
+                  <button
+                    type="button"
+                    className="ai-generate-btn"
+                    onClick={handleGenerateAiDescription}
+                    disabled={aiLoading}
+                    title="Generate intelligent task description and priority via AI API"
+                  >
+                    {aiLoading ? (
+                      <>
+                        <Loader2 size={12} className="spin-icon" />
+                        <span>Generating AI...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={12} />
+                        <span>✨ Auto-Generate with AI</span>
+                      </>
+                    )}
+                  </button>
+                </div>
                 <textarea
                   id="modal-task-desc"
                   rows="3"
-                  placeholder="Add notes, requirements, or links..."
+                  placeholder="Add notes, requirements, or click 'Auto-Generate with AI' above..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                 />
+                {aiNotice && (
+                  <div className="ai-disclaimer-banner">
+                    <Sparkles size={12} />
+                    <span>{aiNotice.disclaimer} ({aiNotice.source})</span>
+                  </div>
+                )}
               </div>
 
               <div className="input-group">
