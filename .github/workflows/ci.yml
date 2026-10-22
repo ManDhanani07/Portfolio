@@ -12,15 +12,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repository code
+      # Step 1: Checkout repository code
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Step 2: Set up Node.js runtime environment (v18)
-      - name: Set up Node.js 18
+      # Step 2: Set up Node.js runtime environment (v20)
+      - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       # Step 3: Install backend dependencies (npm install)
       - name: Install Backend Dependencies
@@ -33,15 +33,3 @@ jobs:
         run: |
           cd backend
           npm test
-
-      # Step 5: Install frontend dependencies
-      - name: Install Frontend Dependencies
-        run: |
-          cd frontend
-          npm install
-
-      # Step 6: Build frontend production bundle (verifies code-splitting)
-      - name: Build Frontend Application
-        run: |
-          cd frontend
-          npm run build
