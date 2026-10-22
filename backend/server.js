@@ -48,14 +48,16 @@ app.use((req, res, next) => {
 // 2. MONGODB DATABASE CONNECTION
 // =============================================================================
 
-mongoose
-  .connect(MONGO_URI)
-  .then(() => {
-    console.log(" MongoDB Connected Successfully to:", MONGO_URI);
-  })
-  .catch((error) => {
-    console.error("❌ MongoDB Connection Error:", error.message);
-  });
+if (process.env.NODE_ENV !== "test") {
+  mongoose
+    .connect(MONGO_URI)
+    .then(() => {
+      console.log(" MongoDB Connected Successfully to:", MONGO_URI);
+    })
+    .catch((error) => {
+      console.error("❌ MongoDB Connection Error:", error.message);
+    });
+}
 
 // =============================================================================
 // 3. API ROUTES
@@ -134,10 +136,12 @@ app.use((err, req, res, next) => {
 });
 
 // =============================================================================
-// 6. SERVER START
+// 6. SERVER START (Avoid port binding during automated Jest testing)
 // =============================================================================
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== "test") {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  });
+}
 
 module.exports = app;
